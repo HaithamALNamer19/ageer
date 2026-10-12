@@ -250,9 +250,12 @@ app.delete('/api/documents/:id', (req, res) => {
     res.json({ success: true, message: 'تم الحذف بنجاح' });
 });
 
-// 5. صفحة الاستعراض للمستخدم عند مسح الـ QR أو فتح الرابط
-app.get('/v/:id', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'viewer.html'));
+// 5. صفحة الاستعراض للمستخدم عند مسح الـ QR أو فتح الرابط (دعم عدة مسارات مرنة)
+const viewRoutes = ['/v/:id', '/p/:id', '/view/:id', '/uploads/pdf/:id'];
+viewRoutes.forEach(route => {
+    app.get(route, (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'viewer.html'));
+    });
 });
 
 // تشغيل الخادم
