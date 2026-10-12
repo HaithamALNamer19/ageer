@@ -11,7 +11,15 @@
     <!-- مكتبة تصدير PDF العميل عالية الدقة (jsPDF + html2canvas مضمنة محلياً) -->
     <script src="/assets/html2pdf.bundle.min.js"></script>
     <style>
-        /* تضمين خط المرعى Almarai الرسمي والمطابق لـ Frutiger LT Arabic مع دعم أوزان كاملة وشبكة أحرف OpenType */
+        /* تضمين خط Frutiger LT Arabic الأصلي للوثيقة الرسمية 100% */
+        @font-face {
+            font-family: 'FrutigerLTArabic-45Light';
+            src: url('/assets/FrutigerLTArabic-45Light.ttf') format('truetype');
+            font-weight: 300 400 700;
+            font-style: normal;
+            font-display: block;
+        }
+
         @font-face {
             font-family: 'Almarai';
             src: url('/assets/Almarai-Regular.ttf') format('truetype');
@@ -28,14 +36,6 @@
             font-display: block;
         }
 
-        @font-face {
-            font-family: 'FrutigerLTArabic-45Light';
-            src: url('/assets/FrutigerLTArabic-45Light.ttf') format('truetype');
-            font-weight: 300 400;
-            font-style: normal;
-            font-display: swap;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -45,7 +45,7 @@
         }
 
         body {
-            font-family: 'Almarai', 'FrutigerLTArabic-45Light', Arial, sans-serif;
+            font-family: 'FrutigerLTArabic-45Light', 'Almarai', Arial, sans-serif;
             background-color: #525659;
             color: #000000;
             min-height: 100vh;
@@ -595,8 +595,30 @@
             return `تصريح_أجير_${num}_${name}.pdf`;
         }
 
+        // ضمان بقاء المسافات بين الكلمات العربية كاملة ومطابقة 100% دون أن تدمجها مكتبة الـ PDF
+        function preserveSpacesInDocument() {
+            const container = document.getElementById('pdfContent');
+            if (!container) return;
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+            let node;
+            while (node = walker.nextNode()) {
+                // نغير فقط النصوص الفعلية التي تحتوي على كلمات وليس المسافات بين وسوم HTML
+                if (node.nodeValue && node.nodeValue.trim().length > 0 && node.nodeValue.includes(' ')) {
+                    node.nodeValue = node.nodeValue.replace(/ /g, '\u00A0');
+                }
+            }
+        }
+
+        // تطبيق حفظ المسافات عند تحميل الصفحة
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', preserveSpacesInDocument);
+        } else {
+            preserveSpacesInDocument();
+        }
+
         // توليد ملف PDF عالي الدقة محلياً في المتصفح بحجم صفحة A4 واحدة فقط 100%
         async function generateClientPdf(filename) {
+            preserveSpacesInDocument();
             if (document.fonts && document.fonts.ready) {
                 await document.fonts.ready;
             }
