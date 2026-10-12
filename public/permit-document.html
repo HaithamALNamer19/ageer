@@ -124,16 +124,17 @@
         /* direction: ltr يضمن بقاء الباركود دائماً في أقصى اليسار والشعارات في أقصى اليمين */
         .header-box {
             border: 0.75pt solid #cecfd5;
-            height: 104px;
+            height: 114px;
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: space-between;
-            padding: 0 12px;
-            margin-bottom: 20px;
+            padding: 0 16px;
+            margin-bottom: 18px;
             background: #ffffff;
             direction: ltr !important;
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         /* اليسار: صندوق الـ QR Code وبيانات التحقق (أول عنصر في LTR = أقصى اليسار) */
@@ -142,34 +143,37 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 95px;
+            width: 78px;
             direction: ltr !important;
             flex-shrink: 0;
+            padding: 0;
         }
 
         .header-qr-box img {
-            width: 77px;
-            height: 77px;
+            width: 52px;
+            height: 52px;
             display: block;
             image-rendering: pixelated;
         }
 
         .qr-subtext-num {
-            font-size: 8.65pt;
+            font-size: 7.5pt;
             font-weight: 700;
             color: #000000;
-            margin-top: 2px;
+            margin-top: 3px;
             letter-spacing: 0.5px;
             text-align: center;
+            line-height: 1.1;
             font-family: 'FrutigerLTArabic-45Light', 'Almarai', Arial, monospace;
         }
 
         .qr-subtext-scan {
-            font-size: 6.7pt;
+            font-size: 6.2pt;
             color: #000000;
             text-align: center;
-            margin-top: 1px;
+            margin-top: 2px;
             font-weight: 400;
+            line-height: 1.1;
             direction: rtl !important;
         }
 
@@ -580,33 +584,23 @@
                 await document.fonts.ready;
             }
             const element = document.getElementById('pdfContent');
-
-            // التقاط عنصر المستند بدقة عالية جداً مطابقة للمطبوع
-            const canvas = await html2canvas(element, {
-                scale: 2.5,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                width: element.offsetWidth,
-                height: element.offsetHeight,
-                windowWidth: 794
-            });
-
-            const imgData = canvas.toDataURL('image/jpeg', 0.98);
-            const { jsPDF } = window.jspdf || window;
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-                compress: true
-            });
-
-            const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
-            const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
-
-            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
-            pdf.save(filename);
+            const opt = {
+                margin: 0,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2.5,
+                    useCORS: true,
+                    scrollY: 0,
+                    logging: false
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait'
+                }
+            };
+            await html2pdf().from(element).set(opt).save();
         }
 
         // تحميل ملف الـ PDF: محاولة التصدير المتجهي من الخادم أولاً، مع بديل فوري مضمون محلياً
@@ -648,15 +642,13 @@
                 console.warn('Server export unavailable, generating via browser engine:', err);
             }
 
-            // 2. إذا لم يكن الخادم يحتوي على محرك PDF (مثل الاستضافات السحابية) أو فشل:
-            // يتم إنشاء وتحميل ملف الـ PDF فورياً ومحلياً داخل المتصفح بدون أي أخطاء
+            // 2. إذا لم يكن الخادم يحتوي على محرك PDF أو فشل، يتم إنشاء وتحميل ملف الـ PDF فورياً عبر العميل
             if (!downloaded) {
                 try {
                     await generateClientPdf(filename);
                     downloaded = true;
                 } catch (clientErr) {
                     console.error('Client PDF generation error:', clientErr);
-                    window.print();
                 }
             }
 
