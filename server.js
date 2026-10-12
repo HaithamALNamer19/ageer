@@ -364,30 +364,43 @@ function renderPermitHtml(docId) {
     const qrCode = (doc && doc.qrCode) ? doc.qrCode : '';
     const viewUrl = (doc && doc.viewUrl) ? doc.viewUrl : '#';
 
-    const facNameFormatted = (p.facilityName || defaults.facilityName).includes('<br>') ? 
-        (p.facilityName || defaults.facilityName) : 
-        (p.facilityName || defaults.facilityName).replace('للمقاولات', '<br>للمقاولات');
+    // صياغة اسم المنشأة والمنشأة المستفيدة بدقة وبدون أي تكرار نهائياً
+    const rawFac = (p.facilityName || defaults.facilityName || '').trim();
+    let facNameFormatted = rawFac;
+    if (!facNameFormatted.includes('<br>') && facNameFormatted.includes('للمقاولات')) {
+        facNameFormatted = facNameFormatted.replace('للمقاولات', '<br>للمقاولات');
+    }
 
-    const benFacNameFormatted = (p.beneficiaryFacilityName || defaults.beneficiaryFacilityName).includes('<br>') ? 
-        (p.beneficiaryFacilityName || defaults.beneficiaryFacilityName) : 
-        (p.beneficiaryFacilityName || defaults.beneficiaryFacilityName).replace('كونستركشن', '<br>كونستركشن');
+    const rawBenFac = (p.beneficiaryFacilityName || defaults.beneficiaryFacilityName || '').trim();
+    let benFacNameFormatted = rawBenFac;
+    if (!benFacNameFormatted.includes('<br>') && benFacNameFormatted.includes('كونستركشن')) {
+        benFacNameFormatted = benFacNameFormatted.replace('كونستركشن', '<br>كونستركشن');
+    }
 
-    template = template
-        .replace(/id="pdf_workerName"[^>]*>[^<]*/, `id="pdf_workerName" class="cell-val worker-english-name">${p.workerName || defaults.workerName}`)
-        .replace(/id="pdf_profession"[^>]*>[^<]*/, `id="pdf_profession" class="cell-val">${p.profession || defaults.profession}`)
-        .replace(/id="pdf_idNumber"[^>]*>[^<]*/, `id="pdf_idNumber" class="cell-val">${p.idNumber || defaults.idNumber}`)
-        .replace(/id="pdf_nationality"[^>]*>[^<]*/, `id="pdf_nationality" class="cell-val">${p.nationality || defaults.nationality}`)
-        .replace(/id="pdf_facilityName"[^>]*>[^<]*/, `id="pdf_facilityName" class="cell-val">${facNameFormatted}`)
-        .replace(/id="pdf_facilityNumber"[^>]*>[^<]*/, `id="pdf_facilityNumber" class="cell-val">${p.facilityNumber || defaults.facilityNumber}`)
-        .replace(/id="pdf_beneficiaryFacilityName"[^>]*>[^<]*/, `id="pdf_beneficiaryFacilityName" class="cell-val">${benFacNameFormatted}`)
-        .replace(/id="pdf_beneficiaryFacilityNumber"[^>]*>[^<]*/, `id="pdf_beneficiaryFacilityNumber" class="cell-val">${p.beneficiaryFacilityNumber || defaults.beneficiaryFacilityNumber}`)
-        .replace(/id="pdf_contractSummary"[^>]*>[^<]*/, `id="pdf_contractSummary" class="cell-val" style="border-left: none;">${p.contractSummary || defaults.contractSummary}`)
-        .replace(/id="pdf_startDate"[^>]*>[^<]*/, `id="pdf_startDate" class="cell-val">${p.startDate || defaults.startDate}`)
-        .replace(/id="pdf_endDate"[^>]*>[^<]*/, `id="pdf_endDate" class="cell-val">${p.endDate || defaults.endDate}`)
-        .replace(/id="pdf_workLocations"[^>]*>[^<]*/, `id="pdf_workLocations" colspan="3" class="cell-val">${p.workLocations || defaults.workLocations}`)
-        .replace(/id="pdfQrPermitNum"[^>]*>[^<]*/, `id="pdfQrPermitNum" class="qr-subtext-num">${p.permitNumber || defaults.permitNumber}`)
-        .replace(/id="pdfQrImg"\s+src="[^"]*"/, `id="pdfQrImg" src="${qrCode}"`)
-        .replace(/id="viewOnlineBtn"\s+href="[^"]*"/, `id="viewOnlineBtn" href="${viewUrl}"`);
+    // استبدال محتوى كل خلية بالكامل بين الوسوم <td> و </td> دون ترك أي بقايا تسبب التكرار
+    function replaceTd(html, id, content) {
+        const regex = new RegExp(`(<td\\s+id="${id}"[^>]*>)[\\s\\S]*?(<\\/td>)`, 'i');
+        return html.replace(regex, `$1${content}$2`);
+    }
+
+    template = replaceTd(template, 'pdf_workerName', p.workerName || defaults.workerName);
+    template = replaceTd(template, 'pdf_profession', p.profession || defaults.profession);
+    template = replaceTd(template, 'pdf_idNumber', p.idNumber || defaults.idNumber);
+    template = replaceTd(template, 'pdf_nationality', p.nationality || defaults.nationality);
+    template = replaceTd(template, 'pdf_facilityName', facNameFormatted);
+    template = replaceTd(template, 'pdf_facilityNumber', p.facilityNumber || defaults.facilityNumber);
+    template = replaceTd(template, 'pdf_beneficiaryFacilityName', benFacNameFormatted);
+    template = replaceTd(template, 'pdf_beneficiaryFacilityNumber', p.beneficiaryFacilityNumber || defaults.beneficiaryFacilityNumber);
+    template = replaceTd(template, 'pdf_contractSummary', p.contractSummary || defaults.contractSummary);
+    template = replaceTd(template, 'pdf_startDate', p.startDate || defaults.startDate);
+    template = replaceTd(template, 'pdf_endDate', p.endDate || defaults.endDate);
+    template = replaceTd(template, 'pdf_workLocations', p.workLocations || defaults.workLocations);
+
+    // ترويسة التصريح والباركود
+    template = template.replace(/(<div\s+id="pdfQrPermitNum"[^>]*>)[\s\S]*?(<\/div>)/i, `$1${p.permitNumber || defaults.permitNumber}$2`);
+    template = template.replace(/id="pdfQrImg"\s+src="[^"]*"/i, `id="pdfQrImg" src="${qrCode}"`);
+    template = template.replace(/id="viewOnlineBtn"\s+href="[^"]*"/i, `id="viewOnlineBtn" href="${viewUrl}"`);
+    template = template.replace(/__DOC_ID__/g, docId || '');
 
     return template;
 }
@@ -412,24 +425,32 @@ const { spawn } = require('child_process');
 app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
     const docId = req.params.id;
     const docs = getDocuments();
-    const doc = docs.find(d => d.id === docId);
-    const workerName = (doc && doc.permitData && doc.permitData.workerName) ? doc.permitData.workerName.replace(/\s+/g, '_') : 'Worker';
-    const permitNum = (doc && doc.permitData && doc.permitData.permitNumber) ? doc.permitData.permitNumber : 'TQ';
+    const doc = docs.find(d => d.id === docId) || docs[0] || { id: docId, permitData: getDefaultPermitData() };
+    const p = (doc && doc.permitData) ? { ...getDefaultPermitData(), ...doc.permitData } : getDefaultPermitData();
+    const workerName = (p.workerName || 'Worker').replace(/[\s\/\\:*?"<>|]+/g, '_');
+    const permitNum = p.permitNumber || 'TQ6262259';
 
     const chromePaths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
     ];
     const browserExecutable = chromePaths.find(p => fs.existsSync(p));
 
     if (browserExecutable) {
-        const tempPdfName = `Ajeer_${docId}_${Date.now()}.pdf`;
-        const tempPdfPath = path.join(UPLOADS_DIR, tempPdfName);
+        const tempId = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const tempPdfPath = path.join(os.tmpdir(), `Ajeer_${docId}_${tempId}.pdf`);
+        const tempProfileDir = path.join(os.tmpdir(), `chrome_profile_${tempId}`);
+        try { fs.mkdirSync(tempProfileDir, { recursive: true }); } catch (e) {}
+
         const url = `http://127.0.0.1:${PORT}/permit-pdf/${docId}`;
         const args = [
             '--headless=new',
             '--disable-gpu',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
             '--no-pdf-header-footer',
+            `--user-data-dir=${tempProfileDir}`,
             `--print-to-pdf=${tempPdfPath}`,
             url
         ];
@@ -438,8 +459,16 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
 
         const timeout = setTimeout(() => {
             try { child.kill(); } catch (e) {}
+            cleanup();
             if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
         }, 15000);
+
+        function cleanup() {
+            setTimeout(() => {
+                try { if (fs.existsSync(tempPdfPath)) fs.unlinkSync(tempPdfPath); } catch (e) {}
+                try { if (fs.existsSync(tempProfileDir)) fs.rmSync(tempProfileDir, { recursive: true, force: true }); } catch (e) {}
+            }, 6000);
+        }
 
         child.on('close', (code) => {
             clearTimeout(timeout);
@@ -448,14 +477,16 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
                 const utf8Name = encodeURIComponent(`تصريح_أجير_${permitNum}_${workerName}.pdf`);
                 res.setHeader('Content-Type', 'application/pdf');
                 res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${utf8Name}`);
+                res.setHeader('Content-Length', fs.statSync(tempPdfPath).size);
+
                 const stream = fs.createReadStream(tempPdfPath);
                 stream.pipe(res);
-                stream.on('end', () => {
-                    setTimeout(() => {
-                        try { fs.unlinkSync(tempPdfPath); } catch (e) {}
-                    }, 5000);
+                stream.on('finish', cleanup);
+                stream.on('error', () => {
+                    cleanup();
                 });
             } else {
+                cleanup();
                 if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
             }
         });
@@ -463,6 +494,7 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
         child.on('error', (err) => {
             clearTimeout(timeout);
             console.error('Headless PDF error:', err);
+            cleanup();
             if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
         });
         return;

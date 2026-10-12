@@ -229,6 +229,7 @@
             border-collapse: collapse;
             table-layout: fixed;
             margin-bottom: 0;
+            direction: rtl !important;
         }
 
         .unified-table th,
@@ -236,45 +237,51 @@
             border: 0.72pt solid #cecfd5;
             font-size: 9pt;
             color: #000000;
-            text-align: center;
+            text-align: right;
             vertical-align: middle;
-            padding: 4.5pt 6pt;
+            padding: 4.5pt 8pt;
             line-height: 1.35;
             font-weight: 400;
         }
 
-        /* رؤوس الأقسام الأربعة */
+        /* رؤوس الأقسام الأربعة - فقط هذه ممركزة في المنتصف */
         .table-sec-header {
             background-color: #ecf0f1 !important;
             font-size: 9pt;
             font-weight: 500;
             color: #000000;
-            text-align: center;
+            text-align: center !important;
             padding: 4.5pt 6pt !important;
             height: 24.5pt;
         }
 
-        /* خلايا التسميات (Labels) */
+        /* خلايا التسميات (Labels) - تبدأ من يمين الخلية تماماً كالأصل */
         .cell-label {
             background-color: #ecf0f1 !important;
             color: #000000;
             font-weight: 400;
-            text-align: center;
+            text-align: right !important;
+            padding-right: 8pt !important;
+            padding-left: 6pt !important;
         }
 
-        /* خلايا القيم (Values) */
+        /* خلايا القيم (Values) - تبدأ من يمين الخلية تماماً كالأصل */
         .cell-val {
             background-color: #ffffff !important;
             color: #000000;
             font-weight: 400;
-            text-align: center;
+            text-align: right !important;
+            padding-right: 8pt !important;
+            padding-left: 6pt !important;
             word-break: break-word;
         }
 
-        /* اسم العامل باللغة الإنجليزية بحروف كبيرة */
+        /* اسم العامل باللغة الإنجليزية بحروف كبيرة مع محاذاة لليمين */
         .worker-english-name {
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            font-size: 8.65pt;
+            text-align: right !important;
         }
 
         /* 4. قسم الإقرارات المطابق للملف الأصلي */
@@ -403,7 +410,7 @@
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                <span>تحميل PDF عالي الدقة</span>
+                <span id="downloadBtnText">تحميل PDF عالي الدقة</span>
             </button>
             <button class="btn btn-print" onclick="window.print()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -552,23 +559,52 @@
     </div>
 
     <script>
+        const currentDocId = '__DOC_ID__';
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
-        const docId = pathSegments[pathSegments.length - 1];
+        const urlId = pathSegments[pathSegments.length - 1];
+        const docId = (currentDocId && !currentDocId.includes('__DOC_ID')) ? currentDocId : (urlId && urlId !== 'permit-document.html' ? urlId : '57f97ae1');
 
         // تحميل ملف PDF فائق الدقة مباشرة من الخادم عبر محرك Chromium Vector
-        function downloadAsPdf() {
+        async function downloadAsPdf() {
             const btn = document.getElementById('downloadBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<span>جاري تجهيز وتحميل ملف الـ PDF...</span>`;
+            const btnText = document.getElementById('downloadBtnText') || btn.querySelector('span');
+            const originalText = btnText ? btnText.innerText : 'تحميل PDF عالي الدقة';
+
+            if (btnText) btnText.innerText = 'جاري إنشاء ملف الـ PDF...';
             btn.disabled = true;
 
-            // توجيه المتصفح المباشر لتحميل الملف كـ Attachment أصلي خالٍ من التلف
-            window.location.href = `/download-pdf/${docId}`;
+            try {
+                const response = await fetch('/download-pdf/' + docId);
+                if (!response.ok) throw new Error('Download failed: ' + response.status);
 
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }, 3000);
+                const blob = await response.blob();
+                if (blob.size < 500) throw new Error('Invalid file size');
+
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = `تصريح_أجير_${docId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(blobUrl);
+                }, 1000);
+
+                if (btnText) btnText.innerText = 'تم التحميل بنجاح ✓';
+                setTimeout(() => {
+                    if (btnText) btnText.innerText = originalText;
+                    btn.disabled = false;
+                }, 2500);
+            } catch (err) {
+                console.warn('Fetch download failed, falling back to window.location:', err);
+                window.location.href = '/download-pdf/' + docId;
+                setTimeout(() => {
+                    if (btnText) btnText.innerText = originalText;
+                    btn.disabled = false;
+                }, 3000);
+            }
         }
     </script>
 </body>
