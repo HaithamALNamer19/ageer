@@ -4,11 +4,10 @@ const QRCode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const os = require('os');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const os = require('os');
 
 // التأكد من وجود المجلدات المطلوبة
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
@@ -65,6 +64,25 @@ function saveDocuments(docs) {
     fs.writeFileSync(DB_FILE, JSON.stringify(docs, null, 2), 'utf8');
 }
 
+// البيانات النموذجية لتصريح أجير
+function getDefaultPermitData(customData = {}) {
+    return {
+        permitNumber: customData.permitNumber || 'TQ6262101',
+        permitType: customData.permitType || 'تصريح تعاقد أجير',
+        startDate: customData.startDate || '2026-10-12',
+        endDate: customData.endDate || '2027-04-12',
+        workerName: customData.workerName || 'RUIQIANG OU',
+        idNumber: customData.idNumber || '2639295373',
+        nationality: customData.nationality || 'الصين الشعبية',
+        profession: customData.profession || 'عامل خرسانة',
+        gender: customData.gender || 'ذكر',
+        birthDate: customData.birthDate || '-',
+        facilityNumber: customData.facilityNumber || '4-1665945',
+        facilityName: customData.facilityName || 'مؤسسة أفق الصحاري للمقاولات عامة',
+        status: customData.status || 'ساري / فعال'
+    };
+}
+
 // إعداد التخزين باستخدام Multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -104,7 +122,6 @@ function getBaseUrl(req) {
     }
 
     const host = req.get('host') || `localhost:${PORT}`;
-    // إذا كان الوصول محلياً عبر localhost نفضل استخدام IP الشبكة لكي يعمل مسح الـ QR من الجوال
     if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
         const localIp = getLocalIpAddress();
         return `http://${localIp}:${PORT}`;
@@ -149,7 +166,6 @@ app.post('/api/settings', async (req, res) => {
 // 1. API: جلب جميع المستندات
 app.get('/api/documents', (req, res) => {
     const docs = getDocuments();
-    // ترتيب تنازلي حسب تاريخ الإضافة
     docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json(docs);
 });
@@ -164,7 +180,70 @@ app.get('/api/documents/:id', (req, res) => {
     res.json(doc);
 });
 
-// 3. API: رفع صورة واحدة أو عدة صور
+// 3. API: إنشاء تصريح أجير مباشرة ببيانات مخصصة (دون حاجة لرفع صورة)
+app.post('/api/permits/create', async (req, res) => {
+    try {
+        const baseUrl = getBaseUrl(req);
+        const docs = getDocuments();
+        const id = uuidv4().substring(0, 8);
+        const viewUrl = `${baseUrl}/v/${id}`;
+
+        const permitData = getDefaultPermitData(req.body);
+        const personName = permitData.workerName || req.body.personName || 'تصريح أجير';
+
+        const qrCodeDataUrl = await QRCode.toDataURL(viewUrl, {
+            width: 400,
+            margin: 2,
+            color: { dark: '#0f172a', light: '#ffffff' }
+        });
+
+        const newDoc = {
+            id,
+            personName,
+            originalName: `تصريح_${permitData.permitNumber}.html`,
+            fileName: '',
+            fileUrl: '',
+            fileType: 'permit',
+            viewUrl,
+            qrCode: qrCodeDataUrl,
+            createdAt: new Date().toISOString(),
+            permitData
+        };
+
+        docs.push(newDoc);
+        saveDocuments(docs);
+
+        res.json({ success: true, document: newDoc });
+    } catch (error) {
+        console.error('Error creating permit:', error);
+        res.status(500).json({ error: error.message || 'حدث خطأ أثناء إنشاء التصريح' });
+    }
+});
+
+// 4. API: تحديث بيانات تصريح أو مستند قائم
+app.put('/api/documents/:id', (req, res) => {
+    const docs = getDocuments();
+    const doc = docs.find(d => d.id === req.params.id);
+    if (!doc) {
+        return res.status(404).json({ error: 'المستند غير موجود' });
+    }
+
+    if (req.body.personName) {
+        doc.personName = req.body.personName.trim();
+    }
+
+    if (req.body.permitData) {
+        doc.permitData = getDefaultPermitData({ ...(doc.permitData || {}), ...req.body.permitData });
+        if (doc.permitData.workerName) {
+            doc.personName = doc.permitData.workerName;
+        }
+    }
+
+    saveDocuments(docs);
+    res.json({ success: true, document: doc });
+});
+
+// 5. API: رفع صورة واحدة أو عدة صور
 app.post('/api/upload', upload.array('files', 50), async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
@@ -175,7 +254,6 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
         const docs = getDocuments();
         const uploadedDocs = [];
 
-        // الأسماء المرسلة إن وجدت
         let names = req.body.names;
         if (typeof names === 'string') {
             names = [names];
@@ -185,7 +263,7 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
 
         for (let i = 0; i < req.files.length; i++) {
             const file = req.files[i];
-            const id = uuidv4().substring(0, 8); // معرف فريد ومختصر للرابط
+            const id = uuidv4().substring(0, 8);
             const personName = (names[i] && names[i].trim()) 
                 ? names[i].trim() 
                 : (req.body.defaultName && req.body.defaultName.trim()) 
@@ -202,6 +280,11 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
                 }
             });
 
+            // إنشاء بيانات تصريح أجير مخصصة لهذا المستند
+            const permitData = getDefaultPermitData({
+                workerName: personName !== 'تصريح تجريبي' ? personName : 'RUIQIANG OU'
+            });
+
             const newDoc = {
                 id,
                 personName,
@@ -211,7 +294,8 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
                 fileType: file.mimetype.startsWith('image/') ? 'image' : 'pdf',
                 viewUrl,
                 qrCode: qrCodeDataUrl,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                permitData
             };
 
             docs.push(newDoc);
@@ -226,7 +310,7 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
     }
 });
 
-// 4. API: حذف مستند
+// 6. API: حذف مستند
 app.delete('/api/documents/:id', (req, res) => {
     const docs = getDocuments();
     const index = docs.findIndex(d => d.id === req.params.id);
@@ -237,20 +321,21 @@ app.delete('/api/documents/:id', (req, res) => {
     const [deletedDoc] = docs.splice(index, 1);
     saveDocuments(docs);
 
-    // حذف الملف الفعلي من مجلد uploads
-    const filePath = path.join(UPLOADS_DIR, deletedDoc.fileName);
-    if (fs.existsSync(filePath)) {
-        try {
-            fs.unlinkSync(filePath);
-        } catch (e) {
-            console.error('Error deleting file:', e);
+    if (deletedDoc.fileName) {
+        const filePath = path.join(UPLOADS_DIR, deletedDoc.fileName);
+        if (fs.existsSync(filePath)) {
+            try {
+                fs.unlinkSync(filePath);
+            } catch (e) {
+                console.error('Error deleting file:', e);
+            }
         }
     }
 
     res.json({ success: true, message: 'تم الحذف بنجاح' });
 });
 
-// 5. صفحة الاستعراض للمستخدم عند مسح الـ QR أو فتح الرابط (دعم عدة مسارات مرنة)
+// 7. صفحة الاستعراض للمستخدم عند مسح الـ QR أو فتح الرابط (دعم عدة مسارات مرنة)
 const viewRoutes = ['/v/:id', '/p/:id', '/view/:id', '/uploads/pdf/:id'];
 viewRoutes.forEach(route => {
     app.get(route, (req, res) => {

@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة إدارة المستندات وتوليد الـ QR المخصص</title>
+    <title>منصة إدارة تصاريح ومستندات أجير وتوليد الـ QR</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Cairo', sans-serif; }
+        body { font-family: 'Cairo', 'Tajawal', sans-serif; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -19,22 +19,26 @@
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-                    <i data-lucide="qr-code" class="w-6 h-6"></i>
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg text-slate-900 leading-tight">مولد روابط ورموز الـ QR</h1>
-                    <p class="text-xs text-slate-500">رابط وصفحة خاصة لكل شخص ومستند</p>
+                    <h1 class="font-bold text-lg text-slate-900 leading-tight">نظام التحقق من تصاريح أجير</h1>
+                    <p class="text-xs text-slate-500">توليد صفحات تحقق رسمية ورموز QR مخصصة</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleSettingsModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-xl border border-slate-200 flex items-center gap-1.5 transition">
-                    <i data-lucide="globe" class="w-3.5 h-3.5 text-blue-600"></i>
-                    <span>إعدادات الدومين / الرابط</span>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="openCreatePermitModal()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow-sm">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span>إنشاء تصريح جديد</span>
                 </button>
-                <span id="docCountBadge" class="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1.5">
+                <button onclick="toggleSettingsModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl border border-slate-200 flex items-center gap-1.5 transition">
+                    <i data-lucide="globe" class="w-3.5 h-3.5 text-blue-600"></i>
+                    <span>إعدادات الدومين</span>
+                </button>
+                <span id="docCountBadge" class="hidden sm:flex bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-2 rounded-xl border border-blue-200 items-center gap-1.5">
                     <i data-lucide="files" class="w-3.5 h-3.5"></i>
-                    <span id="docCountText">0 مستندات مسجلة</span>
+                    <span id="docCountText">0 تصاريح</span>
                 </span>
             </div>
         </div>
@@ -43,83 +47,222 @@
     <!-- المحتوى الرئيسي -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-8">
         
-        <!-- قسم رفع الصور -->
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <i data-lucide="upload-cloud" class="w-5 h-5 text-blue-600"></i>
-                        رفع الصور وتوليد الروابط
-                    </h2>
-                    <p class="text-sm text-slate-500 mt-0.5">يمكنك رفع صورة واحدة أو عدة صور دفعة واحدة وتحديد اسم كل شخص</p>
+        <!-- قسم رفع الصور أو إنشاء التصاريح -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- بطاقة إنشاء تصريح فوري -->
+            <div class="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-2xl p-6 sm:p-7 text-white shadow-lg flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+                        <i data-lucide="file-badge" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="text-xl font-bold">إنشاء صفحة تصريح أجير</h2>
+                    <p class="text-emerald-100 text-xs leading-relaxed">
+                        أنشئ صفحة ويب للتحقق من تصريح أجير بنفس الهوية الرسمية (بيانات التصريح، بيانات العامل، بيانات المنشأة) مع توليد كود الـ QR ورابط مخصص فوراً.
+                    </p>
                 </div>
-            </div>
-
-            <!-- منطقة السحب والإفلات -->
-            <div id="dropzone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-8 text-center transition cursor-pointer bg-slate-50/50 hover:bg-blue-50/30">
-                <input type="file" id="fileInput" multiple accept="image/*,application/pdf" class="hidden">
-                <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                    <i data-lucide="image-plus" class="w-8 h-8"></i>
-                </div>
-                <p class="font-semibold text-slate-700 text-base mb-1">اضغط هنا لاختيار الصور أو اسحبها وأفلتها هنا</p>
-                <p class="text-xs text-slate-400">يدعم صيغ JPG، PNG، WEBP، PDF (يمكنك اختيار عدة صور معاً)</p>
-            </div>
-
-            <!-- قائمة الملفات المختارة قبل الرفع -->
-            <div id="selectedFilesSection" class="hidden mt-6 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-sm text-slate-700">الملفات المختارة للرفع (<span id="selectedCount">0</span>)</h3>
-                    <button type="button" id="clearSelectedBtn" class="text-xs text-red-600 hover:underline">إلغاء الكل</button>
-                </div>
-                
-                <div id="filesList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                    <!-- سيتم إضافة حقول تسمية كل صورة برمجياً -->
-                </div>
-
-                <div class="flex justify-end pt-2">
-                    <button id="startUploadBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-blue-600/20 flex items-center gap-2 transition">
-                        <i data-lucide="check-circle" class="w-5 h-5"></i>
-                        <span>بدء الرفع وتوليد الـ QR للجميع</span>
+                <div class="pt-6">
+                    <button onclick="openCreatePermitModal()" class="w-full bg-white hover:bg-emerald-50 text-emerald-800 font-bold px-4 py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition shadow">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>تعبئة بيانات التصريح والـ QR</span>
                     </button>
                 </div>
             </div>
-        </section>
 
-        <!-- قسم استعراض الروابط والـ QR الحالية -->
+            <!-- بطاقة رفع الصور والمستندات -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="upload-cloud" class="w-5 h-5 text-blue-600"></i>
+                            أو رفع صورة / مستند لتوليد صفحة التحقق والـ QR
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">يمكنك رفع صورة واحدة أو عدة صور دفعة واحدة وتحديد اسم كل شخص</p>
+                    </div>
+                </div>
+
+                <!-- منطقة السحب والإفلات -->
+                <div id="dropzone" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-6 text-center transition cursor-pointer bg-slate-50/50 hover:bg-emerald-50/30">
+                    <input type="file" id="fileInput" multiple accept="image/*,application/pdf" class="hidden">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                        <i data-lucide="image-plus" class="w-6 h-6"></i>
+                    </div>
+                    <p class="font-semibold text-slate-700 text-sm mb-0.5">اضغط هنا لاختيار الصور أو اسحبها وأفلتها هنا</p>
+                    <p class="text-[11px] text-slate-400">يدعم JPG, PNG, WEBP, PDF (تنشئ صفحة ويب للتحقق مع إمكانية ربط المستند)</p>
+                </div>
+
+                <!-- قائمة الملفات المختارة قبل الرفع -->
+                <div id="selectedFilesSection" class="hidden mt-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-xs text-slate-700">الملفات المختارة (<span id="selectedCount">0</span>)</h3>
+                        <button type="button" id="clearSelectedBtn" class="text-xs text-red-600 hover:underline">إلغاء الكل</button>
+                    </div>
+                    
+                    <div id="filesList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- الحقول -->
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button id="startUploadBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-md flex items-center gap-2 transition">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span>بدء الرفع وتوليد صفحات التحقق</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- قسم استعراض التصاريح الحالية -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                     <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
-                        قائمة الروابط وأكواد الـ QR الجاهزة
+                        <i data-lucide="list" class="w-5 h-5 text-emerald-600"></i>
+                        قائمة تصاريح أجير وصفحات التحقق النشطة
                     </h2>
-                    <p class="text-sm text-slate-500 mt-0.5">لكل شخص رابطه الخاص وكود الـ QR الخاص به</p>
+                    <p class="text-sm text-slate-500 mt-0.5">عند مسح كود الـ QR تظهر صفحة التحقق الرسمية بكامل التفاصيل</p>
                 </div>
                 <!-- حقل البحث -->
                 <div class="relative w-full sm:w-72">
-                    <input type="text" id="searchInput" placeholder="بحث باسم الشخص أو المستند..." class="w-full pl-3 pr-10 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-500 bg-slate-50">
+                    <input type="text" id="searchInput" placeholder="بحث بالاسم أو رقم التصريح أو الهوية..." class="w-full pl-3 pr-10 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500 bg-slate-50">
                     <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute right-3 top-3"></i>
                 </div>
             </div>
 
-            <!-- جدول / بطاقات المستندات -->
+            <!-- جدول / بطاقات التصاريح -->
             <div id="loadingState" class="py-12 text-center text-slate-400">
-                <i data-lucide="loader" class="w-8 h-8 mx-auto animate-spin mb-2 text-blue-600"></i>
-                <p class="text-sm">جاري تحميل المستندات...</p>
+                <i data-lucide="loader" class="w-8 h-8 mx-auto animate-spin mb-2 text-emerald-600"></i>
+                <p class="text-sm">جاري تحميل التصاريح...</p>
             </div>
 
             <div id="emptyState" class="hidden py-12 text-center text-slate-400">
                 <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
-                <p class="text-base font-semibold text-slate-600">لا توجد مستندات بعد</p>
-                <p class="text-xs text-slate-400 mt-1">قم برفع الصور بالأعلى لإنشاء روابط ورموز QR مخصصة</p>
+                <p class="text-base font-semibold text-slate-600">لا توجد تصاريح مسجلة بعد</p>
+                <p class="text-xs text-slate-400 mt-1">اضغط على زر "إنشاء تصريح جديد" بالأعلى للبدء</p>
             </div>
 
             <div id="documentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- سيتم ملء البطاقات برمجياً -->
+                <!-- البطاقات -->
             </div>
         </section>
 
     </main>
+
+    <!-- نافذة إنشاء / تعديل تصريح أجير (Modal) -->
+    <div id="permitFormModal" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 my-8">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h4 id="permitModalTitle" class="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-emerald-600"></i>
+                        <span>إنشاء تصريح أجير جديد</span>
+                    </h4>
+                    <p class="text-xs text-slate-400 mt-0.5">ستظهر هذه البيانات في صفحة ويب رسمية مطابقة لموقع أجير</p>
+                </div>
+                <button onclick="closePermitFormModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="permitForm" class="space-y-4 max-h-[75vh] overflow-y-auto pr-1 pl-1">
+                <input type="hidden" id="editDocId" value="">
+
+                <!-- 1. بيانات التصريح -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
+                    <h5 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                        بيانات التصريح
+                    </h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">رقم التصريح:</label>
+                            <input type="text" id="form_permitNumber" value="TQ6262101" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">نوع التصريح:</label>
+                            <input type="text" id="form_permitType" value="تصريح تعاقد أجير" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">تاريخ بداية التصريح:</label>
+                            <input type="text" id="form_startDate" value="2026-10-12" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono focus:border-emerald-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">تاريخ نهاية التصريح:</label>
+                            <input type="text" id="form_endDate" value="2027-04-12" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono focus:border-emerald-500 bg-white">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">حالة التصريح:</label>
+                            <input type="text" id="form_status" value="ساري / فعال" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-emerald-600 focus:border-emerald-500 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. بيانات العامل -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
+                    <h5 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                        بيانات العامل
+                    </h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">اسم العامل (كامل):</label>
+                            <input type="text" id="form_workerName" value="RUIQIANG OU" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold focus:border-emerald-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">رقم الهوية / الإقامة:</label>
+                            <input type="text" id="form_idNumber" value="2639295373" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">الجنسية:</label>
+                            <input type="text" id="form_nationality" value="الصين الشعبية" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">المهنة:</label>
+                            <input type="text" id="form_profession" value="عامل خرسانة" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">الجنس:</label>
+                            <select id="form_gender" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 bg-white">
+                                <option value="ذكر" selected>ذكر</option>
+                                <option value="أنثى">أنثى</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">تاريخ الميلاد:</label>
+                            <input type="text" id="form_birthDate" value="-" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. بيانات المنشأة -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
+                    <h5 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                        بيانات المنشأة
+                    </h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">رقم المنشأة:</label>
+                            <input type="text" id="form_facilityNumber" value="4-1665945" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">اسم المنشأة:</label>
+                            <input type="text" id="form_facilityName" value="مؤسسة أفق الصحاري للمقاولات عامة" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closePermitFormModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">إلغاء</button>
+                    <button type="submit" id="savePermitBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition shadow">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        <span id="savePermitBtnText">حفظ وتوليد الـ QR</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- نافذة إعدادات الرابط والدومين -->
     <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -135,12 +278,12 @@
             </div>
             
             <p class="text-xs text-slate-500 leading-relaxed">
-                يحدد هذا الإعداد الرابط الذي يتم تضمينه داخل رمز الـ QR. إذا كنت تستخدم دومين خاص (مثل موقعك على النت) أو رابط نفق (Ngrok/Cloudflare)، ضعه هنا ليتم إنشاء وتحديث جميع رموز الـ QR بهذا الدومين مباشرة.
+                يحدد هذا الإعداد الرابط الذي يتم تضمينه داخل رمز الـ QR. إذا كنت تستخدم دومين خاص أو رابط نفق (Localtunnel / Cloudflare / Ngrok)، ضعه هنا ليتم إنشاء وتحديث جميع رموز الـ QR بهذا الدومين مباشرة.
             </p>
 
             <div class="space-y-2">
                 <label class="text-xs font-bold text-slate-700">رابط الموقع الأساسي (Base URL):</label>
-                <input type="url" id="customBaseUrlInput" placeholder="مثال: https://my-domain.com" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono dir-ltr focus:outline-none focus:border-blue-500 bg-slate-50">
+                <input type="url" id="customBaseUrlInput" placeholder="مثال: https://cyan-jobs-write.loca.lt" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono dir-ltr focus:outline-none focus:border-blue-500 bg-slate-50">
                 <p class="text-[11px] text-slate-400">اتركه فارغاً للاعتماد التلقائي على عنوان الشبكة المحلية (IP).</p>
             </div>
 
@@ -171,13 +314,13 @@
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center justify-center">
                 <img id="modalQrImg" src="" alt="QR Code" class="w-64 h-64 object-contain">
             </div>
-            <p id="modalViewUrl" class="text-xs text-blue-600 font-mono break-all dir-ltr bg-blue-50 p-2 rounded-lg"></p>
+            <p id="modalViewUrl" class="text-xs text-emerald-700 font-mono break-all dir-ltr bg-emerald-50 p-2 rounded-lg border border-emerald-100"></p>
             <div class="flex gap-2 pt-2">
-                <a id="modalDownloadBtn" href="" download="qr-code.png" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-sm flex items-center justify-center gap-1.5 transition">
+                <a id="modalDownloadBtn" href="" download="qr-code.png" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
                     <i data-lucide="download" class="w-4 h-4"></i>
                     <span>تحميل الـ QR</span>
                 </a>
-                <button onclick="copyModalLink()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-3 rounded-xl text-sm flex items-center justify-center gap-1.5 transition">
+                <button onclick="copyModalLink()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
                     <i data-lucide="copy" class="w-4 h-4"></i>
                     <span id="modalCopyBtnText">نسخ الرابط</span>
                 </button>
@@ -185,7 +328,7 @@
         </div>
     </div>
 
-    <!-- نافذة إشعار منبثق (Toast) -->
+    <!-- إشعار Toast -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
         <span id="toastMsg">تمت العملية بنجاح</span>
@@ -195,10 +338,9 @@
         let allDocuments = [];
         let selectedFiles = [];
 
-        // تهيئة الأيقونات
         lucide.createIcons();
 
-        // إعدادات الدومين
+        // جلب الإعدادات
         async function fetchSettings() {
             try {
                 const res = await fetch('/api/settings');
@@ -226,7 +368,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('تم حفظ الإعدادات وتحديث رموز الـ QR لجميع المستندات');
+                    showToast('تم حفظ الإعدادات وتحديث رموز الـ QR لجميع التصاريح');
                     toggleSettingsModal();
                     fetchDocuments();
                 }
@@ -235,7 +377,6 @@
             }
         }
 
-        // إظهار إشعار
         function showToast(message) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMsg').innerText = message;
@@ -245,7 +386,7 @@
             }, 3000);
         }
 
-        // التعامل مع السحب والإفلات واختيار الملفات
+        // السحب والإفلات والرفع
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('fileInput');
 
@@ -253,16 +394,16 @@
 
         dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropzone.classList.add('border-blue-500', 'bg-blue-50/50');
+            dropzone.classList.add('border-emerald-500', 'bg-emerald-50/50');
         });
 
         dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+            dropzone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
         });
 
         dropzone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+            dropzone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                 handleFileSelection(Array.from(e.dataTransfer.files));
             }
@@ -296,14 +437,13 @@
             selectedFiles.forEach((file, index) => {
                 const defaultLabel = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
                 const row = document.createElement('div');
-                row.className = 'flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl';
+                row.className = 'flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-xl';
                 row.innerHTML = `
-                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
                         ${index + 1}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <input type="text" data-index="${index}" value="${defaultLabel}" placeholder="اسم الشخص أو المستند..." class="fileNameInput w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 bg-white font-medium">
-                        <span class="text-xs text-slate-400 truncate block mt-0.5">${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                        <input type="text" data-index="${index}" value="${defaultLabel}" placeholder="اسم العامل أو الشخص..." class="fileNameInput w-full px-2.5 py-1 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-emerald-500 bg-white font-medium">
                     </div>
                     <button type="button" onclick="removeSelectedFile(${index})" class="text-slate-400 hover:text-red-500 p-1">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -326,25 +466,20 @@
             renderSelectedFilesList();
         });
 
-        // رفع الملفات للسيرفر
         document.getElementById('startUploadBtn').addEventListener('click', async () => {
             if (selectedFiles.length === 0) return;
 
             const btn = document.getElementById('startUploadBtn');
             const originalContent = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> <span>جاري الرفع وتوليد الروابط...</span>`;
+            btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>جاري الرفع وتوليد الصفحات...</span>`;
             lucide.createIcons();
 
             const formData = new FormData();
-            selectedFiles.forEach((file) => {
-                formData.append('files', file);
-            });
+            selectedFiles.forEach((file) => formData.append('files', file));
 
             const inputs = document.querySelectorAll('.fileNameInput');
-            inputs.forEach(input => {
-                formData.append('names', input.value.trim());
-            });
+            inputs.forEach(input => formData.append('names', input.value.trim()));
 
             try {
                 const response = await fetch('/api/upload', {
@@ -354,7 +489,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    showToast(`تم رفع ${result.count} مستند وتوليد الروابط بنجاح`);
+                    showToast(`تم إنشاء ${result.count} صفحة تحقق وتوليد الـ QR بنجاح`);
                     selectedFiles = [];
                     fileInput.value = '';
                     renderSelectedFilesList();
@@ -371,7 +506,134 @@
             }
         });
 
-        // جلب قائمة المستندات من الخادم
+        // نافذة إنشاء / تعديل تصريح أجير
+        function openCreatePermitModal() {
+            document.getElementById('editDocId').value = '';
+            document.getElementById('permitModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-emerald-600"></i> <span>إنشاء تصريح أجير جديد</span>`;
+            document.getElementById('savePermitBtnText').innerText = 'حفظ وإنشاء التصريح والـ QR';
+            
+            // قيم افتراضية
+            document.getElementById('form_permitNumber').value = 'TQ' + Math.floor(1000000 + Math.random() * 9000000);
+            document.getElementById('form_permitType').value = 'تصريح تعاقد أجير';
+            document.getElementById('form_startDate').value = new Date().toISOString().slice(0, 10);
+            
+            const next6Months = new Date();
+            next6Months.setMonth(next6Months.getMonth() + 6);
+            document.getElementById('form_endDate').value = next6Months.toISOString().slice(0, 10);
+            
+            document.getElementById('form_workerName').value = 'RUIQIANG OU';
+            document.getElementById('form_idNumber').value = '2639295373';
+            document.getElementById('form_nationality').value = 'الصين الشعبية';
+            document.getElementById('form_profession').value = 'عامل خرسانة';
+            document.getElementById('form_gender').value = 'ذكر';
+            document.getElementById('form_birthDate').value = '-';
+            document.getElementById('form_facilityNumber').value = '4-1665945';
+            document.getElementById('form_facilityName').value = 'مؤسسة أفق الصحاري للمقاولات عامة';
+            document.getElementById('form_status').value = 'ساري / فعال';
+
+            document.getElementById('permitFormModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function openEditPermitModal(docId) {
+            const doc = allDocuments.find(d => d.id === docId);
+            if (!doc) return;
+
+            document.getElementById('editDocId').value = docId;
+            document.getElementById('permitModalTitle').innerHTML = `<i data-lucide="edit-3" class="w-5 h-5 text-emerald-600"></i> <span>تعديل بيانات التصريح: ${doc.personName}</span>`;
+            document.getElementById('savePermitBtnText').innerText = 'حفظ التعديلات';
+
+            const p = doc.permitData || {};
+            document.getElementById('form_permitNumber').value = p.permitNumber || 'TQ6262101';
+            document.getElementById('form_permitType').value = p.permitType || 'تصريح تعاقد أجير';
+            document.getElementById('form_startDate').value = p.startDate || '2026-10-12';
+            document.getElementById('form_endDate').value = p.endDate || '2027-04-12';
+            document.getElementById('form_workerName').value = p.workerName || doc.personName || 'RUIQIANG OU';
+            document.getElementById('form_idNumber').value = p.idNumber || '2639295373';
+            document.getElementById('form_nationality').value = p.nationality || 'الصين الشعبية';
+            document.getElementById('form_profession').value = p.profession || 'عامل خرسانة';
+            document.getElementById('form_gender').value = p.gender || 'ذكر';
+            document.getElementById('form_birthDate').value = p.birthDate || '-';
+            document.getElementById('form_facilityNumber').value = p.facilityNumber || '4-1665945';
+            document.getElementById('form_facilityName').value = p.facilityName || 'مؤسسة أفق الصحاري للمقاولات عامة';
+            document.getElementById('form_status').value = p.status || 'ساري / فعال';
+
+            document.getElementById('permitFormModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closePermitFormModal() {
+            document.getElementById('permitFormModal').classList.add('hidden');
+        }
+
+        // إرسال نموذج التصريح
+        document.getElementById('permitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('editDocId').value;
+            const btn = document.getElementById('savePermitBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>جاري الحفظ...</span>`;
+            lucide.createIcons();
+
+            const permitPayload = {
+                permitNumber: document.getElementById('form_permitNumber').value.trim(),
+                permitType: document.getElementById('form_permitType').value.trim(),
+                startDate: document.getElementById('form_startDate').value.trim(),
+                endDate: document.getElementById('form_endDate').value.trim(),
+                workerName: document.getElementById('form_workerName').value.trim(),
+                idNumber: document.getElementById('form_idNumber').value.trim(),
+                nationality: document.getElementById('form_nationality').value.trim(),
+                profession: document.getElementById('form_profession').value.trim(),
+                gender: document.getElementById('form_gender').value,
+                birthDate: document.getElementById('form_birthDate').value.trim(),
+                facilityNumber: document.getElementById('form_facilityNumber').value.trim(),
+                facilityName: document.getElementById('form_facilityName').value.trim(),
+                status: document.getElementById('form_status').value.trim()
+            };
+
+            try {
+                if (editId) {
+                    // تعديل
+                    const res = await fetch(`/api/documents/${editId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ permitData: permitPayload })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('تم تحديث بيانات التصريح بنجاح');
+                        closePermitFormModal();
+                        fetchDocuments();
+                    } else {
+                        alert(data.error || 'حدث خطأ أثناء التحديث');
+                    }
+                } else {
+                    // إنشاء جديد
+                    const res = await fetch('/api/permits/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(permitPayload)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('تم إنشاء تصريح أجير وتوليد كود الـ QR بنجاح');
+                        closePermitFormModal();
+                        fetchDocuments();
+                    } else {
+                        alert(data.error || 'حدث خطأ أثناء إنشاء التصريح');
+                    }
+                }
+            } catch (err) {
+                alert('فشل الاتصال بالخادم');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }
+        });
+
+        // جلب المستندات
         async function fetchDocuments() {
             try {
                 const res = await fetch('/api/documents');
@@ -392,11 +654,15 @@
             loading.classList.add('hidden');
 
             const filtered = allDocuments.filter(doc => {
-                return doc.personName.toLowerCase().includes(searchQuery) ||
-                       doc.id.toLowerCase().includes(searchQuery);
+                const p = doc.permitData || {};
+                return (doc.personName && doc.personName.toLowerCase().includes(searchQuery)) ||
+                       (doc.id && doc.id.toLowerCase().includes(searchQuery)) ||
+                       (p.permitNumber && p.permitNumber.toLowerCase().includes(searchQuery)) ||
+                       (p.idNumber && p.idNumber.toLowerCase().includes(searchQuery)) ||
+                       (p.facilityName && p.facilityName.toLowerCase().includes(searchQuery));
             });
 
-            countText.innerText = `${allDocuments.length} مستند مسجل`;
+            countText.innerText = `${allDocuments.length} تصاريح مسجلة`;
 
             if (filtered.length === 0) {
                 empty.classList.remove('hidden');
@@ -408,47 +674,70 @@
             grid.innerHTML = '';
 
             filtered.forEach(doc => {
+                const p = doc.permitData || {};
+                const permitNum = p.permitNumber || 'TQ6262101';
+                const worker = p.workerName || doc.personName || 'عامل';
+                const idNum = p.idNumber || '-';
+                const profession = p.profession || '-';
+
                 const card = document.createElement('div');
                 card.className = 'bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col';
                 card.innerHTML = `
-                    <div class="p-4 border-b border-slate-100 flex items-start gap-3">
-                        <div class="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0 flex items-center justify-center">
-                            ${doc.fileType === 'image' 
-                                ? `<img src="${doc.fileUrl}" alt="Thumbnail" class="w-full h-full object-cover">` 
-                                : `<i data-lucide="file-text" class="w-6 h-6 text-slate-400"></i>`}
+                    <div class="p-4 border-b border-slate-100 flex items-start gap-3 bg-gradient-to-l from-slate-50 to-white">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 shrink-0 flex items-center justify-center text-emerald-600">
+                            <i data-lucide="shield-check" class="w-7 h-7"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-slate-900 text-sm truncate" title="${doc.personName}">${doc.personName}</h3>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-slate-900 text-sm truncate" title="${worker}">${worker}</h3>
+                                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full shrink-0">ساري / فعال</span>
+                            </div>
                             <div class="flex items-center gap-2 mt-1">
-                                <span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">ID: ${doc.id}</span>
-                                <span class="text-[11px] text-slate-400">${new Date(doc.createdAt).toLocaleDateString('ar-SA')}</span>
+                                <span class="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">رقم: ${permitNum}</span>
+                                <span class="text-[11px] text-slate-400 font-mono">هوية: ${idNum}</span>
                             </div>
                         </div>
-                        <button onclick="deleteDoc('${doc.id}')" class="text-slate-300 hover:text-red-500 p-1 transition" title="حذف">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="openEditPermitModal('${doc.id}')" class="text-slate-400 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-slate-100 transition" title="تعديل بيانات التصريح">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteDoc('${doc.id}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-100 transition" title="حذف">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="p-4 bg-slate-50/50 flex-1 flex flex-col justify-between gap-4">
+                    <div class="p-4 bg-slate-50/40 flex-1 flex flex-col justify-between gap-4">
+                        <div class="text-xs space-y-1 text-slate-600">
+                            <div class="flex justify-between py-0.5 border-b border-slate-100">
+                                <span class="text-slate-400">المهنة:</span>
+                                <span class="font-semibold text-slate-800">${profession}</span>
+                            </div>
+                            <div class="flex justify-between py-0.5 border-b border-slate-100">
+                                <span class="text-slate-400">المنشأة:</span>
+                                <span class="font-semibold text-slate-800 truncate max-w-[180px]">${p.facilityName || '-'}</span>
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-between gap-2 bg-white border border-slate-200 p-2.5 rounded-xl">
                             <div class="flex-1 min-w-0">
-                                <p class="text-[11px] text-slate-400">الرابط الخاص بالشخص:</p>
-                                <p class="text-xs font-mono text-blue-600 truncate dir-ltr">${doc.viewUrl}</p>
+                                <p class="text-[10px] text-slate-400">رابط صفحة التحقق:</p>
+                                <p class="text-xs font-mono text-emerald-700 font-semibold truncate dir-ltr">${doc.viewUrl}</p>
                             </div>
-                            <button onclick="copyToClipboard('${doc.viewUrl}')" class="shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="نسخ الرابط">
+                            <button onclick="copyToClipboard('${doc.viewUrl}')" class="shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition" title="نسخ الرابط">
                                 <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                 <span>نسخ</span>
                             </button>
                         </div>
 
                         <div class="flex items-center justify-between pt-1">
-                            <button onclick="openQrModal('${doc.id}')" class="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-blue-600 transition">
+                            <button onclick="openQrModal('${doc.id}')" class="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-emerald-700 transition">
                                 <img src="${doc.qrCode}" class="w-7 h-7 rounded border border-slate-200">
-                                <span>عرض كود الـ QR</span>
+                                <span>كود الـ QR</span>
                             </button>
                             
-                            <a href="${doc.viewUrl}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800">
-                                <span>معاينة الصفحة</span>
+                            <a href="${doc.viewUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition shadow-sm">
+                                <span>فتح صفحة أجير</span>
                                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                             </a>
                         </div>
@@ -460,23 +749,21 @@
             lucide.createIcons();
         }
 
-        // نسخ الرابط إلى الحافظة
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                showToast('تم نسخ الرابط المخصص بنجاح!');
+                showToast('تم نسخ رابط صفحة التحقق بنجاح!');
             });
         }
 
-        // فتح نافذة تكبير الـ QR
         function openQrModal(docId) {
             const doc = allDocuments.find(d => d.id === docId);
             if (!doc) return;
 
-            document.getElementById('modalTitle').innerText = `كود QR: ${doc.personName}`;
+            document.getElementById('modalTitle').innerText = `QR: ${doc.personName}`;
             document.getElementById('modalQrImg').src = doc.qrCode;
             document.getElementById('modalViewUrl').innerText = doc.viewUrl;
             document.getElementById('modalDownloadBtn').href = doc.qrCode;
-            document.getElementById('modalDownloadBtn').download = `QR-${doc.personName.replace(/\s+/g, '_')}-${doc.id}.png`;
+            document.getElementById('modalDownloadBtn').download = `QR-Ajeer-${doc.personName.replace(/\s+/g, '_')}-${doc.id}.png`;
 
             window.currentModalUrl = doc.viewUrl;
             document.getElementById('qrModal').classList.remove('hidden');
@@ -496,14 +783,13 @@
             }
         }
 
-        // حذف مستند
         async function deleteDoc(docId) {
-            if (!confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) return;
+            if (!confirm('هل أنت متأكد من رغبتك في حذف هذا التصريح؟')) return;
             try {
                 const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE' });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('تم حذف المستند بنجاح');
+                    showToast('تم حذف التصريح بنجاح');
                     fetchDocuments();
                 }
             } catch (e) {
@@ -511,10 +797,7 @@
             }
         }
 
-        // البحث الفوري
         document.getElementById('searchInput').addEventListener('input', renderDocumentsGrid);
-
-        // تحميل البيانات عند فتح الصفحة
         fetchDocuments();
     </script>
 </body>
