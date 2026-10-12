@@ -1,0 +1,17 @@
+{
+  "name": "qr-doc-viewer",
+  "version": "1.0.0",
+  "description": "نظام رفع الصور وتوليد روابط ورموز QR مخصصة لكل مستند",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "qrcode": "^1.5.3",
+    "uuid": "^9.0.1"
+  }
+}
+

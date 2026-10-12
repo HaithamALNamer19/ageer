@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة إدارة المستندات وتوليد الـ QR المخصص</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- شريط التنقل العلوي -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i data-lucide="qr-code" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900 leading-tight">مولد روابط ورموز الـ QR</h1>
+                    <p class="text-xs text-slate-500">رابط وصفحة خاصة لكل شخص ومستند</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSettingsModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-xl border border-slate-200 flex items-center gap-1.5 transition">
+                    <i data-lucide="globe" class="w-3.5 h-3.5 text-blue-600"></i>
+                    <span>إعدادات الدومين / الرابط</span>
+                </button>
+                <span id="docCountBadge" class="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1.5">
+                    <i data-lucide="files" class="w-3.5 h-3.5"></i>
+                    <span id="docCountText">0 مستندات مسجلة</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-8">
+        
+        <!-- قسم رفع الصور -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="upload-cloud" class="w-5 h-5 text-blue-600"></i>
+                        رفع الصور وتوليد الروابط
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-0.5">يمكنك رفع صورة واحدة أو عدة صور دفعة واحدة وتحديد اسم كل شخص</p>
+                </div>
+            </div>
+
+            <!-- منطقة السحب والإفلات -->
+            <div id="dropzone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-8 text-center transition cursor-pointer bg-slate-50/50 hover:bg-blue-50/30">
+                <input type="file" id="fileInput" multiple accept="image/*,application/pdf" class="hidden">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <i data-lucide="image-plus" class="w-8 h-8"></i>
+                </div>
+                <p class="font-semibold text-slate-700 text-base mb-1">اضغط هنا لاختيار الصور أو اسحبها وأفلتها هنا</p>
+                <p class="text-xs text-slate-400">يدعم صيغ JPG، PNG، WEBP، PDF (يمكنك اختيار عدة صور معاً)</p>
+            </div>
+
+            <!-- قائمة الملفات المختارة قبل الرفع -->
+            <div id="selectedFilesSection" class="hidden mt-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-sm text-slate-700">الملفات المختارة للرفع (<span id="selectedCount">0</span>)</h3>
+                    <button type="button" id="clearSelectedBtn" class="text-xs text-red-600 hover:underline">إلغاء الكل</button>
+                </div>
+                
+                <div id="filesList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                    <!-- سيتم إضافة حقول تسمية كل صورة برمجياً -->
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button id="startUploadBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-blue-600/20 flex items-center gap-2 transition">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        <span>بدء الرفع وتوليد الـ QR للجميع</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- قسم استعراض الروابط والـ QR الحالية -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
+                        قائمة الروابط وأكواد الـ QR الجاهزة
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-0.5">لكل شخص رابطه الخاص وكود الـ QR الخاص به</p>
+                </div>
+                <!-- حقل البحث -->
+                <div class="relative w-full sm:w-72">
+                    <input type="text" id="searchInput" placeholder="بحث باسم الشخص أو المستند..." class="w-full pl-3 pr-10 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-500 bg-slate-50">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute right-3 top-3"></i>
+                </div>
+            </div>
+
+            <!-- جدول / بطاقات المستندات -->
+            <div id="loadingState" class="py-12 text-center text-slate-400">
+                <i data-lucide="loader" class="w-8 h-8 mx-auto animate-spin mb-2 text-blue-600"></i>
+                <p class="text-sm">جاري تحميل المستندات...</p>
+            </div>
+
+            <div id="emptyState" class="hidden py-12 text-center text-slate-400">
+                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
+                <p class="text-base font-semibold text-slate-600">لا توجد مستندات بعد</p>
+                <p class="text-xs text-slate-400 mt-1">قم برفع الصور بالأعلى لإنشاء روابط ورموز QR مخصصة</p>
+            </div>
+
+            <div id="documentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- سيتم ملء البطاقات برمجياً -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- نافذة إعدادات الرابط والدومين -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i data-lucide="globe" class="w-5 h-5 text-blue-600"></i>
+                    إعدادات الدومين والرابط المعتمد
+                </h4>
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-500 leading-relaxed">
+                يحدد هذا الإعداد الرابط الذي يتم تضمينه داخل رمز الـ QR. إذا كنت تستخدم دومين خاص (مثل موقعك على النت) أو رابط نفق (Ngrok/Cloudflare)، ضعه هنا ليتم إنشاء وتحديث جميع رموز الـ QR بهذا الدومين مباشرة.
+            </p>
+
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-700">رابط الموقع الأساسي (Base URL):</label>
+                <input type="url" id="customBaseUrlInput" placeholder="مثال: https://my-domain.com" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono dir-ltr focus:outline-none focus:border-blue-500 bg-slate-50">
+                <p class="text-[11px] text-slate-400">اتركه فارغاً للاعتماد التلقائي على عنوان الشبكة المحلية (IP).</p>
+            </div>
+
+            <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-xs text-blue-700">
+                <p class="font-bold mb-0.5">الرابط المستخدم حالياً في الـ QR:</p>
+                <code id="currentEffectiveUrl" class="font-mono dir-ltr block text-blue-800 break-all"></code>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="toggleSettingsModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">إلغاء</button>
+                <button type="button" onclick="saveCustomSettings()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>حفظ وتحديث الأكواد</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة منبثقة لمعاينة وتكبير الـ QR -->
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 id="modalTitle" class="font-bold text-slate-900 text-base truncate">كود QR</h4>
+                <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center justify-center">
+                <img id="modalQrImg" src="" alt="QR Code" class="w-64 h-64 object-contain">
+            </div>
+            <p id="modalViewUrl" class="text-xs text-blue-600 font-mono break-all dir-ltr bg-blue-50 p-2 rounded-lg"></p>
+            <div class="flex gap-2 pt-2">
+                <a id="modalDownloadBtn" href="" download="qr-code.png" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-sm flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>تحميل الـ QR</span>
+                </a>
+                <button onclick="copyModalLink()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-3 rounded-xl text-sm flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    <span id="modalCopyBtnText">نسخ الرابط</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إشعار منبثق (Toast) -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMsg">تمت العملية بنجاح</span>
+    </div>
+
+    <script>
+        let allDocuments = [];
+        let selectedFiles = [];
+
+        // تهيئة الأيقونات
+        lucide.createIcons();
+
+        // إعدادات الدومين
+        async function fetchSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                document.getElementById('customBaseUrlInput').value = data.customBaseUrl || '';
+                document.getElementById('currentEffectiveUrl').innerText = data.effectiveBaseUrl;
+            } catch (e) {}
+        }
+
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                fetchSettings();
+            }
+        }
+
+        async function saveCustomSettings() {
+            const customBaseUrl = document.getElementById('customBaseUrlInput').value.trim();
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customBaseUrl })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم حفظ الإعدادات وتحديث رموز الـ QR لجميع المستندات');
+                    toggleSettingsModal();
+                    fetchDocuments();
+                }
+            } catch (e) {
+                alert('فشل حفظ الإعدادات');
+            }
+        }
+
+        // إظهار إشعار
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // التعامل مع السحب والإفلات واختيار الملفات
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-blue-500', 'bg-blue-50/50');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFileSelection(Array.from(e.dataTransfer.files));
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFileSelection(Array.from(e.target.files));
+            }
+        });
+
+        function handleFileSelection(files) {
+            selectedFiles = files;
+            renderSelectedFilesList();
+        }
+
+        function renderSelectedFilesList() {
+            const section = document.getElementById('selectedFilesSection');
+            const list = document.getElementById('filesList');
+            const count = document.getElementById('selectedCount');
+
+            if (selectedFiles.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            count.innerText = selectedFiles.length;
+            section.classList.remove('hidden');
+            list.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const defaultLabel = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl';
+                row.innerHTML = `
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
+                        ${index + 1}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="text" data-index="${index}" value="${defaultLabel}" placeholder="اسم الشخص أو المستند..." class="fileNameInput w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 bg-white font-medium">
+                        <span class="text-xs text-slate-400 truncate block mt-0.5">${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                    </div>
+                    <button type="button" onclick="removeSelectedFile(${index})" class="text-slate-400 hover:text-red-500 p-1">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+                list.appendChild(row);
+            });
+
+            lucide.createIcons();
+        }
+
+        function removeSelectedFile(index) {
+            selectedFiles.splice(index, 1);
+            renderSelectedFilesList();
+        }
+
+        document.getElementById('clearSelectedBtn').addEventListener('click', () => {
+            selectedFiles = [];
+            fileInput.value = '';
+            renderSelectedFilesList();
+        });
+
+        // رفع الملفات للسيرفر
+        document.getElementById('startUploadBtn').addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+
+            const btn = document.getElementById('startUploadBtn');
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> <span>جاري الرفع وتوليد الروابط...</span>`;
+            lucide.createIcons();
+
+            const formData = new FormData();
+            selectedFiles.forEach((file) => {
+                formData.append('files', file);
+            });
+
+            const inputs = document.querySelectorAll('.fileNameInput');
+            inputs.forEach(input => {
+                formData.append('names', input.value.trim());
+            });
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(`تم رفع ${result.count} مستند وتوليد الروابط بنجاح`);
+                    selectedFiles = [];
+                    fileInput.value = '';
+                    renderSelectedFilesList();
+                    fetchDocuments();
+                } else {
+                    alert(result.error || 'حدث خطأ أثناء الرفع');
+                }
+            } catch (err) {
+                alert('فشل الاتصال بالخادم');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                lucide.createIcons();
+            }
+        });
+
+        // جلب قائمة المستندات من الخادم
+        async function fetchDocuments() {
+            try {
+                const res = await fetch('/api/documents');
+                allDocuments = await res.json();
+                renderDocumentsGrid();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderDocumentsGrid() {
+            const grid = document.getElementById('documentsGrid');
+            const loading = document.getElementById('loadingState');
+            const empty = document.getElementById('emptyState');
+            const countText = document.getElementById('docCountText');
+            const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            loading.classList.add('hidden');
+
+            const filtered = allDocuments.filter(doc => {
+                return doc.personName.toLowerCase().includes(searchQuery) ||
+                       doc.id.toLowerCase().includes(searchQuery);
+            });
+
+            countText.innerText = `${allDocuments.length} مستند مسجل`;
+
+            if (filtered.length === 0) {
+                empty.classList.remove('hidden');
+                grid.innerHTML = '';
+                return;
+            }
+
+            empty.classList.add('hidden');
+            grid.innerHTML = '';
+
+            filtered.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col';
+                card.innerHTML = `
+                    <div class="p-4 border-b border-slate-100 flex items-start gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0 flex items-center justify-center">
+                            ${doc.fileType === 'image' 
+                                ? `<img src="${doc.fileUrl}" alt="Thumbnail" class="w-full h-full object-cover">` 
+                                : `<i data-lucide="file-text" class="w-6 h-6 text-slate-400"></i>`}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-slate-900 text-sm truncate" title="${doc.personName}">${doc.personName}</h3>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">ID: ${doc.id}</span>
+                                <span class="text-[11px] text-slate-400">${new Date(doc.createdAt).toLocaleDateString('ar-SA')}</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteDoc('${doc.id}')" class="text-slate-300 hover:text-red-500 p-1 transition" title="حذف">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-4 bg-slate-50/50 flex-1 flex flex-col justify-between gap-4">
+                        <div class="flex items-center justify-between gap-2 bg-white border border-slate-200 p-2.5 rounded-xl">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[11px] text-slate-400">الرابط الخاص بالشخص:</p>
+                                <p class="text-xs font-mono text-blue-600 truncate dir-ltr">${doc.viewUrl}</p>
+                            </div>
+                            <button onclick="copyToClipboard('${doc.viewUrl}')" class="shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="نسخ الرابط">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                <span>نسخ</span>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <button onclick="openQrModal('${doc.id}')" class="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-blue-600 transition">
+                                <img src="${doc.qrCode}" class="w-7 h-7 rounded border border-slate-200">
+                                <span>عرض كود الـ QR</span>
+                            </button>
+                            
+                            <a href="${doc.viewUrl}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800">
+                                <span>معاينة الصفحة</span>
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        // نسخ الرابط إلى الحافظة
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('تم نسخ الرابط المخصص بنجاح!');
+            });
+        }
+
+        // فتح نافذة تكبير الـ QR
+        function openQrModal(docId) {
+            const doc = allDocuments.find(d => d.id === docId);
+            if (!doc) return;
+
+            document.getElementById('modalTitle').innerText = `كود QR: ${doc.personName}`;
+            document.getElementById('modalQrImg').src = doc.qrCode;
+            document.getElementById('modalViewUrl').innerText = doc.viewUrl;
+            document.getElementById('modalDownloadBtn').href = doc.qrCode;
+            document.getElementById('modalDownloadBtn').download = `QR-${doc.personName.replace(/\s+/g, '_')}-${doc.id}.png`;
+
+            window.currentModalUrl = doc.viewUrl;
+            document.getElementById('qrModal').classList.remove('hidden');
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        function copyModalLink() {
+            if (window.currentModalUrl) {
+                navigator.clipboard.writeText(window.currentModalUrl).then(() => {
+                    const btn = document.getElementById('modalCopyBtnText');
+                    btn.innerText = 'تم النسخ!';
+                    setTimeout(() => btn.innerText = 'نسخ الرابط', 2000);
+                });
+            }
+        }
+
+        // حذف مستند
+        async function deleteDoc(docId) {
+            if (!confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) return;
+            try {
+                const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم حذف المستند بنجاح');
+                    fetchDocuments();
+                }
+            } catch (e) {
+                alert('فشل الحذف');
+            }
+        }
+
+        // البحث الفوري
+        document.getElementById('searchInput').addEventListener('input', renderDocumentsGrid);
+
+        // تحميل البيانات عند فتح الصفحة
+        fetchDocuments();
+    </script>
+</body>
+</html>
