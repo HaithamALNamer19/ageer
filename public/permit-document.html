@@ -8,8 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
-    <!-- مكتبة html2pdf لتوليد ملف الـ PDF كبديل احتياطي -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* تضمين خط Frutiger LT Arabic الأصلي المستخرج مباشرة من الوثيقة الرسمية */
         @font-face {
@@ -124,7 +122,7 @@
         /* direction: ltr يضمن بقاء الباركود دائماً في أقصى اليسار والشعارات في أقصى اليمين */
         .header-box {
             border: 0.75pt solid #cecfd5;
-            height: 106px;
+            height: 104px;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -144,6 +142,7 @@
             justify-content: center;
             width: 80px;
             direction: ltr !important;
+            flex-shrink: 0;
         }
 
         .header-qr-box img {
@@ -176,7 +175,7 @@
         .header-title-box {
             flex: 1;
             text-align: center;
-            padding: 0 8px;
+            padding: 0 10px;
             direction: rtl !important;
         }
 
@@ -197,6 +196,7 @@
             align-items: center;
             gap: 12px;
             direction: ltr !important;
+            flex-shrink: 0;
         }
 
         .logo-ajeer {
@@ -461,7 +461,7 @@
             نشعركم أنه تم التعاقد من قبلنا كجهة مقدمة للخدمة مع الجهة المستفيدة من الخدمة حسب المعلومات المبينة أدناه، ولذلك تم تسجيل معلومات العقد لتكون بحوزة العامل لإثبات عدم مخالفته لنظام العمل ولتقديمها إلى من يهمه الأمر من الجهات المختصة عند طلبها للتحقق من صحة تواجده في مكان تقديم الخدمة
         </p>
 
-        <!-- 3. الجدول الموحد المتصل المطابق 100% -->
+        <!-- 3. الجدول الموحد المتصل المطابق 100% لتوزيع وخلايا الوثيقة الأصلية -->
         <table class="unified-table">
             <colgroup>
                 <col style="width: 25%;">
@@ -470,7 +470,7 @@
                 <col style="width: 25%;">
             </colgroup>
             <tbody>
-                <!-- قسم 1: بيانات العامل -->
+                <!-- 1. ترويسة بيانات العامل -->
                 <tr>
                     <td colspan="4" class="table-sec-header">بيانات العامل</td>
                 </tr>
@@ -487,35 +487,36 @@
                     <td id="pdf_nationality" class="cell-val">الصين الشعبية</td>
                 </tr>
 
-                <!-- قسم 2: بيانات مقدم الخدمة -->
+                <!-- 2. ترويسة بيانات مقدم الخدمة -->
                 <tr>
                     <td colspan="4" class="table-sec-header">بيانات مقدم الخدمة</td>
                 </tr>
                 <tr>
                     <td class="cell-label">المنشأة المقدمة للخدمة</td>
-                    <td id="pdf_facilityName" class="cell-val">مؤسسة أفق الصحاري للمقاولات عامة</td>
-                    <td class="cell-label">رقم المنشأة في وزارة الموارد البشرية و التنمية الإجتماعية</td>
+                    <td id="pdf_facilityName" class="cell-val">مؤسسة أفق الصحاري<br>للمقاولات عامة</td>
+                    <td class="cell-label">رقم المنشأة في وزارة الموارد<br>البشرية و التنمية الإجتماعية</td>
                     <td id="pdf_facilityNumber" class="cell-val">4-1665945</td>
                 </tr>
 
-                <!-- قسم 3: بيانات المستفيد من الخدمة -->
+                <!-- 3. ترويسة بيانات المستفيد من الخدمة -->
                 <tr>
                     <td colspan="4" class="table-sec-header">بيانات المستفيد من الخدمة</td>
                 </tr>
                 <tr>
                     <td class="cell-label">المنشأة المستفيدة من الخدمة</td>
-                    <td id="pdf_beneficiaryFacilityName" class="cell-val">تشاينا بتروليم انجنيرينج أند كونستركشن كوربوريشن</td>
-                    <td class="cell-label">رقم المنشأة في وزارة الموارد البشرية و التنمية الإجتماعية</td>
+                    <td id="pdf_beneficiaryFacilityName" class="cell-val">تشاينا بتروليم انجنيرينج أند<br>كونستركشن كوربوريشن</td>
+                    <td class="cell-label">رقم المنشأة في وزارة الموارد<br>البشرية و التنمية الإجتماعية</td>
                     <td id="pdf_beneficiaryFacilityNumber" class="cell-val">15-1946336</td>
                 </tr>
 
-                <!-- قسم 4: بيانات التصريح -->
+                <!-- 4. ترويسة بيانات التصريح -->
                 <tr>
                     <td colspan="4" class="table-sec-header">بيانات التصريح</td>
                 </tr>
                 <tr>
                     <td class="cell-label">نبذة عن التعاقد</td>
-                    <td id="pdf_contractSummary" colspan="3" class="cell-val">صيانة وتشغيل</td>
+                    <td id="pdf_contractSummary" class="cell-val" style="border-left: none;">صيانة وتشغيل</td>
+                    <td colspan="2" class="cell-val" style="border-right: none;"></td>
                 </tr>
                 <tr>
                     <td class="cell-label">تاريخ بداية التصريح</td>
@@ -554,135 +555,20 @@
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
         const docId = pathSegments[pathSegments.length - 1];
 
-        let currentDoc = null;
-
-        if (docId) {
-            fetch(`/api/documents/${docId}`)
-                .then(res => res.json())
-                .then(doc => {
-                    currentDoc = doc;
-                    applyPdfData(doc);
-                })
-                .catch(err => {
-                    console.error('Error fetching document:', err);
-                });
-        }
-
-        function applyPdfData(doc) {
-            const defaults = {
-                permitNumber: 'TQ6262259',
-                permitType: 'تصريح تعاقد أجير',
-                startDate: '2026-09-02',
-                endDate: '2027-03-02',
-                workerName: 'WEIYUAN SONG',
-                idNumber: '2643807544',
-                nationality: 'الصين الشعبية',
-                profession: 'عامل خرسانة',
-                facilityNumber: '4-1665945',
-                facilityName: 'مؤسسة أفق الصحاري للمقاولات عامة',
-                beneficiaryFacilityName: 'تشاينا بتروليم انجنيرينج أند كونستركشن كوربوريشن',
-                beneficiaryFacilityNumber: '15-1946336',
-                contractSummary: 'صيانة وتشغيل',
-                workLocations: 'طريق الملك فهد، الحسام، الدمام 34223'
-            };
-
-            const p = (doc && doc.permitData) ? { ...defaults, ...doc.permitData } : { ...defaults };
-
-            if (doc && doc.personName && (!doc.permitData || !doc.permitData.workerName)) {
-                if (doc.personName !== 'تصريح تجريبي' && doc.personName.trim()) {
-                    p.workerName = doc.personName;
-                }
-            }
-
-            // تعبئة البيانات في مستند الـ PDF
-            document.getElementById('pdf_workerName').innerText = p.workerName || defaults.workerName;
-            document.getElementById('pdf_profession').innerText = p.profession || defaults.profession;
-            document.getElementById('pdf_idNumber').innerText = p.idNumber || defaults.idNumber;
-            document.getElementById('pdf_nationality').innerText = p.nationality || defaults.nationality;
-
-            document.getElementById('pdf_facilityName').innerText = p.facilityName || defaults.facilityName;
-            document.getElementById('pdf_facilityNumber').innerText = p.facilityNumber || defaults.facilityNumber;
-
-            document.getElementById('pdf_beneficiaryFacilityName').innerText = p.beneficiaryFacilityName || defaults.beneficiaryFacilityName;
-            document.getElementById('pdf_beneficiaryFacilityNumber').innerText = p.beneficiaryFacilityNumber || defaults.beneficiaryFacilityNumber;
-
-            document.getElementById('pdf_contractSummary').innerText = p.contractSummary || defaults.contractSummary;
-            document.getElementById('pdf_startDate').innerText = p.startDate || defaults.startDate;
-            document.getElementById('pdf_endDate').innerText = p.endDate || defaults.endDate;
-            document.getElementById('pdf_workLocations').innerText = p.workLocations || defaults.workLocations;
-
-            // كود الـ QR
-            if (doc && doc.qrCode) {
-                document.getElementById('pdfQrImg').src = doc.qrCode;
-            }
-            document.getElementById('pdfQrPermitNum').innerText = p.permitNumber || defaults.permitNumber;
-
-            // الرابط المباشر لصفحة التحقق الإلكترونية
-            if (doc && doc.viewUrl) {
-                document.getElementById('viewOnlineBtn').href = doc.viewUrl;
-            }
-
-            document.title = `تصريح أجير - ${p.permitNumber || 'TQ6262259'} - ${p.workerName || ''}`;
-        }
-
-        // تحميل ملف PDF فائق الدقة (مباشرة عبر محرك Chromium Vector الأصلي مع بديل متصفح نقي)
-        async function downloadAsPdf() {
+        // تحميل ملف PDF فائق الدقة مباشرة من الخادم عبر محرك Chromium Vector
+        function downloadAsPdf() {
             const btn = document.getElementById('downloadBtn');
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<span>جاري توليد وتحميل ملف الـ PDF...</span>`;
+            btn.innerHTML = `<span>جاري تجهيز وتحميل ملف الـ PDF...</span>`;
             btn.disabled = true;
 
-            const permitNum = document.getElementById('pdfQrPermitNum').innerText.trim() || 'TQ';
-            const workerName = document.getElementById('pdf_workerName').innerText.trim() || 'العامل';
-            const filename = `تصريح_أجير_${permitNum}_${workerName.replace(/\s+/g, '_')}.pdf`;
+            // توجيه المتصفح المباشر لتحميل الملف كـ Attachment أصلي خالٍ من التلف
+            window.location.href = `/download-pdf/${docId}`;
 
-            // 1. الأولوية الأولى: تحميل مباشر للملف المتجهي الأصلي من الخادم عبر Chromium
-            try {
-                const response = await fetch(`/api/export-pdf/${docId}`);
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const downloadUrl = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-                    window.URL.revokeObjectURL(downloadUrl);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    return;
-                }
-            } catch (err) {
-                console.warn('Server export fallback to client-side:', err);
-            }
-
-            // 2. بديل العميل في حال تعذر الخادم: بدون تقسيم وبدون تكسير الخطوط
-            document.fonts.ready.then(() => {
-                const element = document.getElementById('pdfContent');
-                const opt = {
-                    margin: 0,
-                    filename: filename,
-                    image: { type: 'jpeg', quality: 1.0 },
-                    html2canvas: {
-                        scale: 3,
-                        useCORS: true,
-                        scrollY: 0,
-                        letterRendering: false
-                    },
-                    jsPDF: { unit: 'px', format: [794, 1120], orientation: 'portrait' }
-                };
-
-                html2pdf().set(opt).from(element).save().then(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }).catch(err => {
-                    console.error('html2pdf fallback error:', err);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    window.print();
-                });
-            });
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 3000);
         }
     </script>
 </body>

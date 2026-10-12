@@ -347,14 +347,66 @@ viewRoutes.forEach(route => {
     });
 });
 
+// دالة حقن بيانات التصريح في قالب الـ HTML مباشرة لضمان الظهور الفوري بدقة 100%
+function renderPermitHtml(docId) {
+    const docs = getDocuments();
+    const doc = docs.find(d => d.id === docId);
+    let template = fs.readFileSync(path.join(__dirname, 'public', 'permit-document.html'), 'utf8');
+
+    const defaults = getDefaultPermitData();
+    const p = (doc && doc.permitData) ? { ...defaults, ...doc.permitData } : defaults;
+    if (doc && doc.personName && (!doc.permitData || !doc.permitData.workerName)) {
+        if (doc.personName !== 'تصريح تجريبي' && doc.personName.trim()) {
+            p.workerName = doc.personName;
+        }
+    }
+
+    const qrCode = (doc && doc.qrCode) ? doc.qrCode : '';
+    const viewUrl = (doc && doc.viewUrl) ? doc.viewUrl : '#';
+
+    const facNameFormatted = (p.facilityName || defaults.facilityName).includes('<br>') ? 
+        (p.facilityName || defaults.facilityName) : 
+        (p.facilityName || defaults.facilityName).replace('للمقاولات', '<br>للمقاولات');
+
+    const benFacNameFormatted = (p.beneficiaryFacilityName || defaults.beneficiaryFacilityName).includes('<br>') ? 
+        (p.beneficiaryFacilityName || defaults.beneficiaryFacilityName) : 
+        (p.beneficiaryFacilityName || defaults.beneficiaryFacilityName).replace('كونستركشن', '<br>كونستركشن');
+
+    template = template
+        .replace(/id="pdf_workerName"[^>]*>[^<]*/, `id="pdf_workerName" class="cell-val worker-english-name">${p.workerName || defaults.workerName}`)
+        .replace(/id="pdf_profession"[^>]*>[^<]*/, `id="pdf_profession" class="cell-val">${p.profession || defaults.profession}`)
+        .replace(/id="pdf_idNumber"[^>]*>[^<]*/, `id="pdf_idNumber" class="cell-val">${p.idNumber || defaults.idNumber}`)
+        .replace(/id="pdf_nationality"[^>]*>[^<]*/, `id="pdf_nationality" class="cell-val">${p.nationality || defaults.nationality}`)
+        .replace(/id="pdf_facilityName"[^>]*>[^<]*/, `id="pdf_facilityName" class="cell-val">${facNameFormatted}`)
+        .replace(/id="pdf_facilityNumber"[^>]*>[^<]*/, `id="pdf_facilityNumber" class="cell-val">${p.facilityNumber || defaults.facilityNumber}`)
+        .replace(/id="pdf_beneficiaryFacilityName"[^>]*>[^<]*/, `id="pdf_beneficiaryFacilityName" class="cell-val">${benFacNameFormatted}`)
+        .replace(/id="pdf_beneficiaryFacilityNumber"[^>]*>[^<]*/, `id="pdf_beneficiaryFacilityNumber" class="cell-val">${p.beneficiaryFacilityNumber || defaults.beneficiaryFacilityNumber}`)
+        .replace(/id="pdf_contractSummary"[^>]*>[^<]*/, `id="pdf_contractSummary" class="cell-val" style="border-left: none;">${p.contractSummary || defaults.contractSummary}`)
+        .replace(/id="pdf_startDate"[^>]*>[^<]*/, `id="pdf_startDate" class="cell-val">${p.startDate || defaults.startDate}`)
+        .replace(/id="pdf_endDate"[^>]*>[^<]*/, `id="pdf_endDate" class="cell-val">${p.endDate || defaults.endDate}`)
+        .replace(/id="pdf_workLocations"[^>]*>[^<]*/, `id="pdf_workLocations" colspan="3" class="cell-val">${p.workLocations || defaults.workLocations}`)
+        .replace(/id="pdfQrPermitNum"[^>]*>[^<]*/, `id="pdfQrPermitNum" class="qr-subtext-num">${p.permitNumber || defaults.permitNumber}`)
+        .replace(/id="pdfQrImg"\s+src="[^"]*"/, `id="pdfQrImg" src="${qrCode}"`)
+        .replace(/id="viewOnlineBtn"\s+href="[^"]*"/, `id="viewOnlineBtn" href="${viewUrl}"`);
+
+    return template;
+}
+
 // 8. صفحة مستند وتصميم الـ PDF الرسمي للتصريح (مطابق لمستند وزارة الموارد البشرية وأجير)
 const pdfRoutes = ['/pdf/:id', '/permit-pdf/:id', '/doc/:id'];
 pdfRoutes.forEach(route => {
     app.get(route, (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'permit-document.html'));
+        try {
+            const html = renderPermitHtml(req.params.id);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.send(html);
+        } catch (e) {
+            res.sendFile(path.join(__dirname, 'public', 'permit-document.html'));
+        }
     });
 });
 
+// 9. توليد وتصدير ملف الـ PDF المتجهي عالي الدقة مباشرة عبر محرك Chromium
 const { spawn } = require('child_process');
 
 app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
@@ -392,14 +444,16 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
         child.on('close', (code) => {
             clearTimeout(timeout);
             if (fs.existsSync(tempPdfPath) && fs.statSync(tempPdfPath).size > 1000) {
+                const asciiName = `Ajeer_Permit_${permitNum}.pdf`;
+                const utf8Name = encodeURIComponent(`تصريح_أجير_${permitNum}_${workerName}.pdf`);
                 res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(`تصريح_أجير_${permitNum}_${workerName}.pdf`)}"`);
+                res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${utf8Name}`);
                 const stream = fs.createReadStream(tempPdfPath);
                 stream.pipe(res);
                 stream.on('end', () => {
                     setTimeout(() => {
                         try { fs.unlinkSync(tempPdfPath); } catch (e) {}
-                    }, 3000);
+                    }, 5000);
                 });
             } else {
                 if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
