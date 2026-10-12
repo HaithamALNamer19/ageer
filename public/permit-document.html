@@ -4,33 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تصريح أجير – تعاقد أجير</title>
-    <!-- خطوط عربية مطابقة للوثيقة الأصلية (Almarai كبديل رسمي لـ Frutiger LT Arabic) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
     <!-- مكتبة تصدير PDF العميل عالية الدقة (jsPDF + html2canvas مضمنة محلياً) -->
     <script src="/assets/html2pdf.bundle.min.js"></script>
     <style>
-        /* تضمين خط Frutiger LT Arabic الأصلي للوثيقة الرسمية 100% */
+        /* تضمين خط Frutiger LT Arabic الأصلي للوثيقة الرسمية 100% بكامل محارفه وأوزانه الأصلية */
         @font-face {
             font-family: 'FrutigerLTArabic-45Light';
             src: url('/assets/FrutigerLTArabic-45Light.ttf') format('truetype');
-            font-weight: 300 400 700;
-            font-style: normal;
-            font-display: block;
-        }
-
-        @font-face {
-            font-family: 'Almarai';
-            src: url('/assets/Almarai-Regular.ttf') format('truetype');
             font-weight: 400;
             font-style: normal;
             font-display: block;
         }
 
         @font-face {
-            font-family: 'Almarai';
-            src: url('/assets/Almarai-Bold.ttf') format('truetype');
+            font-family: 'FrutigerLTArabic-45Light';
+            src: url('/assets/FrutigerLTArabic-65Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: 'Frutiger LT Arabic';
+            src: url('/assets/FrutigerLTArabic-45Light.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: 'Frutiger LT Arabic';
+            src: url('/assets/FrutigerLTArabic-65Bold.ttf') format('truetype');
             font-weight: 700;
             font-style: normal;
             font-display: block;
@@ -45,7 +49,7 @@
         }
 
         body {
-            font-family: 'FrutigerLTArabic-45Light', 'Almarai', Arial, sans-serif;
+            font-family: 'FrutigerLTArabic-45Light', 'Frutiger LT Arabic', Arial, sans-serif;
             background-color: #525659;
             color: #000000;
             min-height: 100vh;
@@ -506,15 +510,15 @@
                 </tr>
                 <tr>
                     <td class="cell-label">اسم العامل</td>
-                    <td id="pdf_workerName" class="cell-val worker-english-name">WEIYUAN SONG</td>
+                    <td id="pdf_workerName" class="cell-val worker-english-name">WEIYUAN&nbsp;SONG</td>
                     <td class="cell-label">المهنة</td>
-                    <td id="pdf_profession" class="cell-val">عامل خرسانة</td>
+                    <td id="pdf_profession" class="cell-val">عامل&nbsp;خرسانة</td>
                 </tr>
                 <tr>
                     <td class="cell-label">رقم الهوية / الإقامة</td>
                     <td id="pdf_idNumber" class="cell-val">2643807544</td>
                     <td class="cell-label">الجنسية</td>
-                    <td id="pdf_nationality" class="cell-val">الصين الشعبية</td>
+                    <td id="pdf_nationality" class="cell-val">الصين&nbsp;الشعبية</td>
                 </tr>
 
                 <!-- 2. ترويسة بيانات مقدم الخدمة -->
@@ -523,7 +527,7 @@
                 </tr>
                 <tr>
                     <td class="cell-label">المنشأة المقدمة للخدمة</td>
-                    <td id="pdf_facilityName" class="cell-val">مؤسسة أفق الصحاري<br>للمقاولات عامة</td>
+                    <td id="pdf_facilityName" class="cell-val">مؤسسة&nbsp;أفق&nbsp;الصحاري<br>للمقاولات&nbsp;عامة</td>
                     <td class="cell-label">رقم المنشأة في وزارة الموارد<br>البشرية و التنمية الإجتماعية</td>
                     <td id="pdf_facilityNumber" class="cell-val">4-1665945</td>
                 </tr>
@@ -534,7 +538,7 @@
                 </tr>
                 <tr>
                     <td class="cell-label">المنشأة المستفيدة من الخدمة</td>
-                    <td id="pdf_beneficiaryFacilityName" class="cell-val">تشاينا بتروليم انجنيرينج أند<br>كونستركشن كوربوريشن</td>
+                    <td id="pdf_beneficiaryFacilityName" class="cell-val">تشاينا&nbsp;بتروليم&nbsp;انجينيرينج&nbsp;أند<br>كونستركشن&nbsp;كوربوريشن</td>
                     <td class="cell-label">رقم المنشأة في وزارة الموارد<br>البشرية و التنمية الإجتماعية</td>
                     <td id="pdf_beneficiaryFacilityNumber" class="cell-val">15-1946336</td>
                 </tr>
@@ -545,7 +549,7 @@
                 </tr>
                 <tr>
                     <td class="cell-label">نبذة عن التعاقد</td>
-                    <td id="pdf_contractSummary" class="cell-val" style="border-left: none;">صيانة وتشغيل</td>
+                    <td id="pdf_contractSummary" class="cell-val" style="border-left: none;">صيانة&nbsp;وتشغيل</td>
                     <td colspan="2" class="cell-val" style="border-right: none;"></td>
                 </tr>
                 <tr>
@@ -556,7 +560,7 @@
                 </tr>
                 <tr>
                     <td class="cell-label">مواقع العمل</td>
-                    <td id="pdf_workLocations" colspan="3" class="cell-val">طريق الملك فهد، الحسام، الدمام 34223</td>
+                    <td id="pdf_workLocations" colspan="3" class="cell-val">طريق&nbsp;الملك&nbsp;فهد،&nbsp;الحسام،&nbsp;الدمام&nbsp;34223</td>
                 </tr>
             </tbody>
         </table>
@@ -595,30 +599,29 @@
             return `تصريح_أجير_${num}_${name}.pdf`;
         }
 
-        // ضمان بقاء المسافات بين الكلمات العربية كاملة ومطابقة 100% دون أن تدمجها مكتبة الـ PDF
-        function preserveSpacesInDocument() {
-            const container = document.getElementById('pdfContent');
-            if (!container) return;
-            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
-            let node;
-            while (node = walker.nextNode()) {
-                // نغير فقط النصوص الفعلية التي تحتوي على كلمات وليس المسافات بين وسوم HTML
-                if (node.nodeValue && node.nodeValue.trim().length > 0 && node.nodeValue.includes(' ')) {
-                    node.nodeValue = node.nodeValue.replace(/ /g, '\u00A0');
+        // حماية المسافات في خلايا الجدول فقط لضمان عدم اندماج الكلمات في تصدير الـ PDF
+        function preserveTableSpaces() {
+            const table = document.querySelector('.unified-table');
+            if (!table) return;
+            const cells = table.querySelectorAll('.cell-val, .cell-label');
+            cells.forEach(cell => {
+                // نغير فقط الخلايا البسيطة التي لا تحتوي على وسوم فرعية لتفادي كسر الـ HTML
+                if (cell.children.length === 0 && cell.textContent && cell.textContent.includes(' ')) {
+                    cell.innerHTML = cell.textContent.trim().replace(/\s+/g, '&nbsp;');
                 }
-            }
+            });
         }
 
-        // تطبيق حفظ المسافات عند تحميل الصفحة
+        // تطبيق حفظ مسافات الجدول عند تحميل الصفحة
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', preserveSpacesInDocument);
+            document.addEventListener('DOMContentLoaded', preserveTableSpaces);
         } else {
-            preserveSpacesInDocument();
+            preserveTableSpaces();
         }
 
         // توليد ملف PDF عالي الدقة محلياً في المتصفح بحجم صفحة A4 واحدة فقط 100%
         async function generateClientPdf(filename) {
-            preserveSpacesInDocument();
+            preserveTableSpaces();
             if (document.fonts && document.fonts.ready) {
                 await document.fonts.ready;
             }

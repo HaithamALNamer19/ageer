@@ -391,18 +391,27 @@ function renderPermitHtml(docId) {
         return html.replace(regex, `$1${content}$2`);
     }
 
-    template = replaceTd(template, 'pdf_workerName', p.workerName || defaults.workerName);
-    template = replaceTd(template, 'pdf_profession', p.profession || defaults.profession);
-    template = replaceTd(template, 'pdf_idNumber', p.idNumber || defaults.idNumber);
-    template = replaceTd(template, 'pdf_nationality', p.nationality || defaults.nationality);
-    template = replaceTd(template, 'pdf_facilityName', facNameFormatted);
-    template = replaceTd(template, 'pdf_facilityNumber', p.facilityNumber || defaults.facilityNumber);
-    template = replaceTd(template, 'pdf_beneficiaryFacilityName', benFacNameFormatted);
-    template = replaceTd(template, 'pdf_beneficiaryFacilityNumber', p.beneficiaryFacilityNumber || defaults.beneficiaryFacilityNumber);
-    template = replaceTd(template, 'pdf_contractSummary', p.contractSummary || defaults.contractSummary);
-    template = replaceTd(template, 'pdf_startDate', p.startDate || defaults.startDate);
-    template = replaceTd(template, 'pdf_endDate', p.endDate || defaults.endDate);
-    template = replaceTd(template, 'pdf_workLocations', p.workLocations || defaults.workLocations);
+    // الحفاظ على المسافات بين كلمات خلايا الجدول لتفادي اندماجها في الـ PDF
+    function formatCell(str) {
+        if (!str) return '';
+        return String(str).split(/(<br\s*\/?>)/i).map(part => {
+            if (/^<br\s*\/?>$/i.test(part)) return part;
+            return part.replace(/ /g, '&nbsp;');
+        }).join('');
+    }
+
+    template = replaceTd(template, 'pdf_workerName', formatCell(p.workerName || defaults.workerName));
+    template = replaceTd(template, 'pdf_profession', formatCell(p.profession || defaults.profession));
+    template = replaceTd(template, 'pdf_idNumber', formatCell(p.idNumber || defaults.idNumber));
+    template = replaceTd(template, 'pdf_nationality', formatCell(p.nationality || defaults.nationality));
+    template = replaceTd(template, 'pdf_facilityName', formatCell(facNameFormatted));
+    template = replaceTd(template, 'pdf_facilityNumber', formatCell(p.facilityNumber || defaults.facilityNumber));
+    template = replaceTd(template, 'pdf_beneficiaryFacilityName', formatCell(benFacNameFormatted));
+    template = replaceTd(template, 'pdf_beneficiaryFacilityNumber', formatCell(p.beneficiaryFacilityNumber || defaults.beneficiaryFacilityNumber));
+    template = replaceTd(template, 'pdf_contractSummary', formatCell(p.contractSummary || defaults.contractSummary));
+    template = replaceTd(template, 'pdf_startDate', formatCell(p.startDate || defaults.startDate));
+    template = replaceTd(template, 'pdf_endDate', formatCell(p.endDate || defaults.endDate));
+    template = replaceTd(template, 'pdf_workLocations', formatCell(p.workLocations || defaults.workLocations));
 
     // ترويسة التصريح والباركود
     template = template.replace(/(<div\s+id="pdfQrPermitNum"[^>]*>)[\s\S]*?(<\/div>)/i, `$1${p.permitNumber || defaults.permitNumber}$2`);
