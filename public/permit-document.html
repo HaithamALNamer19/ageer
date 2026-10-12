@@ -138,6 +138,7 @@
             overflow: hidden !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            direction: rtl !important;
         }
 
         /* 1. صندوق الهيدر العلوي المحدد بإطار رسمي مطابق */
@@ -314,6 +315,7 @@
         /* 4. قسم الإقرارات المطابق للملف الأصلي */
         .declarations-section {
             margin-top: 16px;
+            direction: rtl !important;
         }
 
         .decl-main-title {
@@ -322,6 +324,7 @@
             font-weight: 700;
             color: #000000;
             margin-bottom: 7px;
+            direction: rtl !important;
         }
 
         .decl-intro {
@@ -330,6 +333,8 @@
             color: #000000;
             margin-bottom: 5px;
             text-align: right;
+            direction: rtl !important;
+            unicode-bidi: isolate;
         }
 
         .decl-list {
@@ -339,6 +344,7 @@
             font-size: 9pt;
             line-height: 1.75;
             color: #000000;
+            direction: rtl !important;
         }
 
         .decl-list li {
@@ -346,6 +352,8 @@
             padding-right: 14px;
             margin-bottom: 2px;
             text-align: justify;
+            direction: rtl !important;
+            unicode-bidi: isolate;
         }
 
         .decl-list li::before {
@@ -566,14 +574,14 @@
         </table>
 
         <!-- 4. قسم الإقرارات -->
-        <div class="declarations-section">
+        <div class="declarations-section" dir="rtl">
             <div class="decl-main-title">إقرارات</div>
-            <div class="decl-intro">أقر أنا المنشأة المقدمة للخدمة والموضحة بياناتي أعلاه وأتعهد بـ:</div>
-            <ul class="decl-list">
-                <li>إن العامل حامل هذا التصريح بحمله له يقر ويتعهد بأن البيانات المدونة فيه صحيحة على مسؤوليته الشخصية، وأنه يعمل لدى المنشأة ولحسابها، بموجب رخصة إقامة سارية المفعول. وأتحمل أي تبعات قانونية أو غرامات تترتب على خلاف المذكور أعلاه.</li>
-                <li>الالتزام والتقيد بأنظمة العمل والعمال وأي أنظمة و لوائح وقرارات أخرى ذات علاقة.</li>
-                <li>أن الموقع الإلكتروني الخاص بأجير أو القائمين عليه عبارة عن وسيط إلكتروني ما بين الباحثين عن العمل وأصحاب الأعمال فقط وبدون أي التزام قانوني أو غيره على القائمين على موقع أجير.</li>
-                <li>أي تعديل أو كشط في هذا التصريح يجعله لاغياً.</li>
+            <div class="decl-intro" dir="rtl">أقر أنا المنشأة المقدمة للخدمة والموضحة بياناتي أعلاه وأتعهد بـ:&rlm;</div>
+            <ul class="decl-list" dir="rtl">
+                <li dir="rtl">إن العامل حامل هذا التصريح بحمله له يقر ويتعهد بأن البيانات المدونة فيه صحيحة على مسؤوليته الشخصية، وأنه يعمل لدى المنشأة ولحسابها، بموجب رخصة إقامة سارية المفعول.&rlm; وأتحمل أي تبعات قانونية أو غرامات تترتب على خلاف المذكور أعلاه.&rlm;</li>
+                <li dir="rtl">الالتزام والتقيد بأنظمة العمل والعمال وأي أنظمة و لوائح وقرارات أخرى ذات علاقة.&rlm;</li>
+                <li dir="rtl">أن الموقع الإلكتروني الخاص بأجير أو القائمين عليه عبارة عن وسيط إلكتروني ما بين الباحثين عن العمل وأصحاب الأعمال فقط وبدون أي التزام قانوني أو غيره على القائمين على موقع أجير.&rlm;</li>
+                <li dir="rtl">أي تعديل أو كشط في هذا التصريح يجعله لاغياً.&rlm;</li>
             </ul>
         </div>
 
@@ -634,7 +642,13 @@
                     scale: 2.8,
                     useCORS: true,
                     scrollY: 0,
-                    logging: false
+                    logging: false,
+                    onclone: function(clonedDoc) {
+                        const container = clonedDoc.getElementById('pdfContent');
+                        if (container) {
+                            container.style.direction = 'rtl';
+                        }
+                    }
                 },
                 jsPDF: {
                     unit: 'mm',
