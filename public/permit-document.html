@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <!-- مكتبة تصدير PDF العميل عالية الدقة (jsPDF + html2canvas مضمنة محلياً) -->
+    <script src="/assets/html2pdf.bundle.min.js"></script>
     <style>
         /* تضمين خط Frutiger LT Arabic الأصلي المستخرج مباشرة من الوثيقة الرسمية */
         @font-face {
@@ -140,23 +142,23 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 80px;
+            width: 95px;
             direction: ltr !important;
             flex-shrink: 0;
         }
 
         .header-qr-box img {
-            width: 58px;
-            height: 58px;
+            width: 77px;
+            height: 77px;
             display: block;
             image-rendering: pixelated;
         }
 
         .qr-subtext-num {
-            font-size: 8.5pt;
+            font-size: 8.65pt;
             font-weight: 700;
             color: #000000;
-            margin-top: 1px;
+            margin-top: 2px;
             letter-spacing: 0.5px;
             text-align: center;
             font-family: 'FrutigerLTArabic-45Light', 'Almarai', Arial, monospace;
@@ -166,7 +168,7 @@
             font-size: 6.7pt;
             color: #000000;
             text-align: center;
-            margin-top: 0px;
+            margin-top: 1px;
             font-weight: 400;
             direction: rtl !important;
         }
@@ -564,47 +566,105 @@
         const urlId = pathSegments[pathSegments.length - 1];
         const docId = (currentDocId && !currentDocId.includes('__DOC_ID')) ? currentDocId : (urlId && urlId !== 'permit-document.html' ? urlId : '57f97ae1');
 
-        // تحميل ملف PDF فائق الدقة مباشرة من الخادم عبر محرك Chromium Vector
+        function getPermitFilename() {
+            const numEl = document.getElementById('pdfQrPermitNum');
+            const nameEl = document.getElementById('pdf_workerName');
+            const num = numEl ? numEl.innerText.trim() : 'TQ';
+            const name = nameEl ? nameEl.innerText.trim().replace(/\s+/g, '_') : 'Worker';
+            return `تصريح_أجير_${num}_${name}.pdf`;
+        }
+
+        // توليد ملف PDF عالي الدقة محلياً في المتصفح بحجم صفحة A4 واحدة فقط 100%
+        async function generateClientPdf(filename) {
+            if (document.fonts && document.fonts.ready) {
+                await document.fonts.ready;
+            }
+            const element = document.getElementById('pdfContent');
+
+            // التقاط عنصر المستند بدقة عالية جداً مطابقة للمطبوع
+            const canvas = await html2canvas(element, {
+                scale: 2.5,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: element.offsetWidth,
+                height: element.offsetHeight,
+                windowWidth: 794
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
+            const { jsPDF } = window.jspdf || window;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
+            const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+            pdf.save(filename);
+        }
+
+        // تحميل ملف الـ PDF: محاولة التصدير المتجهي من الخادم أولاً، مع بديل فوري مضمون محلياً
         async function downloadAsPdf() {
             const btn = document.getElementById('downloadBtn');
             const btnText = document.getElementById('downloadBtnText') || btn.querySelector('span');
             const originalText = btnText ? btnText.innerText : 'تحميل PDF عالي الدقة';
+            const filename = getPermitFilename();
 
             if (btnText) btnText.innerText = 'جاري إنشاء ملف الـ PDF...';
             btn.disabled = true;
 
+            let downloaded = false;
+
+            // 1. محاولة تحميل ملف متجهي رسمي من الخادم إذا كان متوفراً وبصيغة PDF حقيقية
             try {
-                const response = await fetch('/download-pdf/' + docId);
-                if (!response.ok) throw new Error('Download failed: ' + response.status);
+                const response = await fetch('/download-pdf/' + docId, { method: 'GET' });
+                const contentType = response.headers.get('content-type') || '';
 
-                const blob = await response.blob();
-                if (blob.size < 500) throw new Error('Invalid file size');
-
-                const blobUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = blobUrl;
-                a.download = `تصريح_أجير_${docId}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(blobUrl);
-                }, 1000);
-
-                if (btnText) btnText.innerText = 'تم التحميل بنجاح ✓';
-                setTimeout(() => {
-                    if (btnText) btnText.innerText = originalText;
-                    btn.disabled = false;
-                }, 2500);
+                // التأكد الصارم من أن الملف هو PDF حقيقي وليس صفحة HTML
+                if (response.ok && contentType.includes('application/pdf')) {
+                    const blob = await response.blob();
+                    if (blob.size > 2000) {
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = blobUrl;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(blobUrl);
+                        }, 1000);
+                        downloaded = true;
+                    }
+                }
             } catch (err) {
-                console.warn('Fetch download failed, falling back to window.location:', err);
-                window.location.href = '/download-pdf/' + docId;
-                setTimeout(() => {
-                    if (btnText) btnText.innerText = originalText;
-                    btn.disabled = false;
-                }, 3000);
+                console.warn('Server export unavailable, generating via browser engine:', err);
             }
+
+            // 2. إذا لم يكن الخادم يحتوي على محرك PDF (مثل الاستضافات السحابية) أو فشل:
+            // يتم إنشاء وتحميل ملف الـ PDF فورياً ومحلياً داخل المتصفح بدون أي أخطاء
+            if (!downloaded) {
+                try {
+                    await generateClientPdf(filename);
+                    downloaded = true;
+                } catch (clientErr) {
+                    console.error('Client PDF generation error:', clientErr);
+                    window.print();
+                }
+            }
+
+            if (btnText) btnText.innerText = downloaded ? 'تم التحميل بنجاح ✓' : originalText;
+            setTimeout(() => {
+                if (btnText) btnText.innerText = originalText;
+                btn.disabled = false;
+            }, 2500);
         }
     </script>
 </body>

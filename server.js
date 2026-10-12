@@ -9,6 +9,14 @@ const os = require('os');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// تسجيل مسارات الطلبات للمتابعة والتصحيح
+app.use((req, res, next) => {
+    if (!req.url.startsWith('/assets/')) {
+        console.log(`[${new Date().toLocaleTimeString('en-US')}] ${req.method} ${req.url}`);
+    }
+    next();
+});
+
 // التأكد من وجود المجلدات المطلوبة
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const DATA_DIR = path.join(__dirname, 'data');
@@ -157,9 +165,9 @@ app.post('/api/settings', async (req, res) => {
     for (const doc of docs) {
         doc.viewUrl = `${newBaseUrl}/v/${doc.id}`;
         doc.qrCode = await QRCode.toDataURL(doc.viewUrl, {
-            width: 400,
-            margin: 2,
-            color: { dark: '#0f172a', light: '#ffffff' }
+            width: 500,
+            margin: 1,
+            color: { dark: '#000000', light: '#ffffff' }
         });
     }
     saveDocuments(docs);
@@ -196,9 +204,9 @@ app.post('/api/permits/create', async (req, res) => {
         const personName = permitData.workerName || req.body.personName || 'تصريح أجير';
 
         const qrCodeDataUrl = await QRCode.toDataURL(viewUrl, {
-            width: 400,
-            margin: 2,
-            color: { dark: '#0f172a', light: '#ffffff' }
+            width: 500,
+            margin: 1,
+            color: { dark: '#000000', light: '#ffffff' }
         });
 
         const newDoc = {
@@ -276,10 +284,10 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
 
             const viewUrl = `${baseUrl}/v/${id}`;
             const qrCodeDataUrl = await QRCode.toDataURL(viewUrl, {
-                width: 400,
-                margin: 2,
+                width: 500,
+                margin: 1,
                 color: {
-                    dark: '#0f172a',
+                    dark: '#000000',
                     light: '#ffffff'
                 }
             });
@@ -432,8 +440,15 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
 
     const chromePaths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
+        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium',
+        '/usr/bin/chromium-browser',
+        '/snap/bin/chromium',
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     ];
     const browserExecutable = chromePaths.find(p => fs.existsSync(p));
 
@@ -460,7 +475,7 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
         const timeout = setTimeout(() => {
             try { child.kill(); } catch (e) {}
             cleanup();
-            if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
+            if (!res.headersSent) res.status(503).json({ error: 'Server PDF generation timeout' });
         }, 15000);
 
         function cleanup() {
@@ -487,7 +502,7 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
                 });
             } else {
                 cleanup();
-                if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
+                if (!res.headersSent) res.status(503).json({ error: 'Failed to generate PDF on server' });
             }
         });
 
@@ -495,12 +510,13 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
             clearTimeout(timeout);
             console.error('Headless PDF error:', err);
             cleanup();
-            if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
+            if (!res.headersSent) res.status(503).json({ error: 'Headless browser execution error' });
         });
         return;
     }
 
-    res.redirect(`/permit-pdf/${docId}`);
+    // إذا لم يتوفر محرك Chromium على الخادم (كالاستضافات السحابية بدون متصفح)، نرسل استجابة واضحة ليتولى العميل إنشاءه
+    res.status(503).json({ error: 'No headless browser on server, client will generate PDF' });
 });
 
 // تشغيل الخادم
