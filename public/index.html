@@ -235,20 +235,56 @@
                     </div>
                 </div>
 
-                <!-- 3. بيانات المنشأة -->
+                <!-- 3. بيانات المنشأة مقدمة الخدمة -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
                     <h5 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-purple-600"></span>
-                        بيانات المنشأة
+                        بيانات مقدم الخدمة
                     </h5>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1">رقم المنشأة:</label>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">رقم المنشأة (الموارد البشرية):</label>
                             <input type="text" id="form_facilityNumber" value="4-1665945" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono font-semibold focus:border-emerald-500 bg-white">
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1">اسم المنشأة:</label>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">اسم المنشأة المقدمة للخدمة:</label>
                             <input type="text" id="form_facilityName" value="مؤسسة أفق الصحاري للمقاولات عامة" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. بيانات المنشأة المستفيدة من الخدمة -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
+                    <h5 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                        بيانات المستفيد من الخدمة
+                    </h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">رقم المنشأة المستفيدة:</label>
+                            <input type="text" id="form_beneficiaryFacilityNumber" value="15-1946336" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">اسم المنشأة المستفيدة من الخدمة:</label>
+                            <input type="text" id="form_beneficiaryFacilityName" value="تشاينا بتروليم انجينيرينج أند كونستركشن كوربوريشن" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. تفاصيل التعاقد وموقع العمل -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
+                    <h5 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                        تفاصيل التعاقد وموقع العمل
+                    </h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">نبذة عن التعاقد:</label>
+                            <input type="text" id="form_contractSummary" value="صيانة وتشغيل" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold focus:border-emerald-500 bg-white">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">مواقع العمل:</label>
+                            <input type="text" id="form_workLocations" value="طريق الملك فهد، الحسام، الدمام 34223" required class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold focus:border-emerald-500 bg-white">
                         </div>
                     </div>
                 </div>
@@ -529,6 +565,10 @@
             document.getElementById('form_birthDate').value = '-';
             document.getElementById('form_facilityNumber').value = '4-1665945';
             document.getElementById('form_facilityName').value = 'مؤسسة أفق الصحاري للمقاولات عامة';
+            document.getElementById('form_beneficiaryFacilityNumber').value = '15-1946336';
+            document.getElementById('form_beneficiaryFacilityName').value = 'تشاينا بتروليم انجينيرينج أند كونستركشن كوربوريشن';
+            document.getElementById('form_contractSummary').value = 'صيانة وتشغيل';
+            document.getElementById('form_workLocations').value = 'طريق الملك فهد، الحسام، الدمام 34223';
             document.getElementById('form_status').value = 'ساري / فعال';
 
             document.getElementById('permitFormModal').classList.remove('hidden');
@@ -556,6 +596,10 @@
             document.getElementById('form_birthDate').value = p.birthDate || '-';
             document.getElementById('form_facilityNumber').value = p.facilityNumber || '4-1665945';
             document.getElementById('form_facilityName').value = p.facilityName || 'مؤسسة أفق الصحاري للمقاولات عامة';
+            document.getElementById('form_beneficiaryFacilityNumber').value = p.beneficiaryFacilityNumber || '15-1946336';
+            document.getElementById('form_beneficiaryFacilityName').value = p.beneficiaryFacilityName || 'تشاينا بتروليم انجينيرينج أند كونستركشن كوربوريشن';
+            document.getElementById('form_contractSummary').value = p.contractSummary || 'صيانة وتشغيل';
+            document.getElementById('form_workLocations').value = p.workLocations || 'طريق الملك فهد، الحسام، الدمام 34223';
             document.getElementById('form_status').value = p.status || 'ساري / فعال';
 
             document.getElementById('permitFormModal').classList.remove('hidden');
@@ -589,6 +633,10 @@
                 birthDate: document.getElementById('form_birthDate').value.trim(),
                 facilityNumber: document.getElementById('form_facilityNumber').value.trim(),
                 facilityName: document.getElementById('form_facilityName').value.trim(),
+                beneficiaryFacilityNumber: document.getElementById('form_beneficiaryFacilityNumber').value.trim(),
+                beneficiaryFacilityName: document.getElementById('form_beneficiaryFacilityName').value.trim(),
+                contractSummary: document.getElementById('form_contractSummary').value.trim(),
+                workLocations: document.getElementById('form_workLocations').value.trim(),
                 status: document.getElementById('form_status').value.trim()
             };
 
@@ -730,16 +778,23 @@
                             </button>
                         </div>
 
-                        <div class="flex items-center justify-between pt-1">
-                            <button onclick="openQrModal('${doc.id}')" class="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-emerald-700 transition">
-                                <img src="${doc.qrCode}" class="w-7 h-7 rounded border border-slate-200">
-                                <span>كود الـ QR</span>
+                        <div class="flex items-center justify-between pt-1 gap-2 flex-wrap">
+                            <button onclick="openQrModal('${doc.id}')" class="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-emerald-700 transition">
+                                <img src="${doc.qrCode}" class="w-6 h-6 rounded border border-slate-200">
+                                <span>الـ QR</span>
                             </button>
                             
-                            <a href="${doc.viewUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition shadow-sm">
-                                <span>فتح صفحة أجير</span>
-                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                            </a>
+                            <div class="flex items-center gap-1.5">
+                                <a href="/permit-pdf/${doc.id}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1.5 rounded-lg transition" title="فتح وتحميل مستند التصريح PDF">
+                                    <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+                                    <span>ملف PDF</span>
+                                </a>
+
+                                <a href="${doc.viewUrl}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg transition shadow-sm" title="فتح صفحة التحقق الإلكترونية">
+                                    <span>صفحة التحقق</span>
+                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 `;

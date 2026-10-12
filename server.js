@@ -79,6 +79,10 @@ function getDefaultPermitData(customData = {}) {
         birthDate: customData.birthDate || '-',
         facilityNumber: customData.facilityNumber || '4-1665945',
         facilityName: customData.facilityName || 'مؤسسة أفق الصحاري للمقاولات عامة',
+        beneficiaryFacilityName: customData.beneficiaryFacilityName || 'تشاينا بتروليم انجينيرينج أند كونستركشن كوربوريشن',
+        beneficiaryFacilityNumber: customData.beneficiaryFacilityNumber || '15-1946336',
+        contractSummary: customData.contractSummary || 'صيانة وتشغيل',
+        workLocations: customData.workLocations || 'طريق الملك فهد، الحسام، الدمام 34223',
         status: customData.status || 'ساري / فعال'
     };
 }
@@ -340,6 +344,14 @@ const viewRoutes = ['/v/:id', '/p/:id', '/view/:id', '/uploads/pdf/:id'];
 viewRoutes.forEach(route => {
     app.get(route, (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'viewer.html'));
+    });
+});
+
+// 8. صفحة مستند وتصميم الـ PDF الرسمي للتصريح (مطابق لمستند وزارة الموارد البشرية وأجير)
+const pdfRoutes = ['/pdf/:id', '/permit-pdf/:id', '/doc/:id'];
+pdfRoutes.forEach(route => {
+    app.get(route, (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'permit-document.html'));
     });
 });
 
