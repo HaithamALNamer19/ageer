@@ -301,34 +301,6 @@
             object-fit: contain;
         }
 
-        /* زر تبديل لعرض المستند الأصلي المرفوع إذا رغب المستخدم */
-        .view-doc-attachment-bar {
-            text-align: center;
-            margin-top: 12px;
-        }
-
-        .view-doc-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #475569;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 20px;
-            text-decoration: none;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-        }
-
-        .view-doc-btn:hover {
-            background: #f1f5f9;
-            color: #0f172a;
-            border-color: #94a3b8;
-        }
-
         /* شاشة التحميل الأولية */
         #loadingOverlay {
             position: fixed;
@@ -356,51 +328,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* نافذة منبثقة للمستند المرفق */
-        #docModal {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.8);
-            z-index: 200;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            backdrop-blur: 4px;
-        }
-
-        .modal-body {
-            background: #ffffff;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            border-radius: 12px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-header {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .modal-content-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .modal-content-area img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-        }
     </style>
 </head>
 <body>
@@ -524,19 +451,7 @@
 
         </article>
 
-        <!-- زر اختياري لاستعراض المرفق إن وجد -->
-        <div id="attachmentBar" class="view-doc-attachment-bar" style="display: none;">
-            <button onclick="openDocModal()" class="view-doc-btn">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-                <span>معاينة المستند المرفق</span>
-            </button>
-        </div>
+
 
     </main>
 
@@ -610,31 +525,16 @@
         </div>
     </footer>
 
-    <!-- نافذة منبثقة للمستند المرفق (في حال أراد المستخدم مشاهدة الصورة الأصلية المرفوعة) -->
-    <div id="docModal">
-        <div class="modal-body">
-            <div class="modal-header">
-                <span id="modalDocTitle" style="font-size: 14px; font-weight: 700; color: #0f172a;">المستند الأصلي المرفوع</span>
-                <button onclick="closeDocModal()" style="border: none; background: none; cursor: pointer; color: #64748b; font-size: 20px; line-height: 1;">&times;</button>
-            </div>
-            <div class="modal-content-area">
-                <img id="modalDocImg" src="" alt="المستند المرفق">
-            </div>
-        </div>
-    </div>
 
     <script>
         // استخراج معرف المستند من المسار
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
         const docId = pathSegments[pathSegments.length - 1];
 
-        let currentDoc = null;
-
         if (docId) {
             fetch(`/api/documents/${docId}`)
                 .then(res => res.json())
                 .then(doc => {
-                    currentDoc = doc;
                     applyDocumentData(doc);
                 })
                 .catch(err => {
@@ -646,7 +546,6 @@
         }
 
         function applyDocumentData(doc) {
-            // بيانات افتراضية تطابق الصورة المرفقة الأصلية
             const defaults = {
                 permitNumber: 'TQ6262101',
                 permitType: 'تصريح تعاقد أجير',
@@ -665,14 +564,12 @@
 
             const data = (doc && doc.permitData) ? { ...defaults, ...doc.permitData } : { ...defaults };
 
-            // إذا كان اسم الشخص محدد في المستند ولم يُحدد صراحة في بيانات العامل نستخدمه
             if (doc && doc.personName && (!doc.permitData || !doc.permitData.workerName)) {
                 if (doc.personName !== 'تصريح تجريبي' && doc.personName.trim()) {
                     data.workerName = doc.personName;
                 }
             }
 
-            // تطبيق القيم في الحقول
             document.getElementById('val_permitNumber').innerText = data.permitNumber || defaults.permitNumber;
             document.getElementById('val_permitType').innerText = data.permitType || defaults.permitType;
             document.getElementById('val_startDate').innerText = data.startDate || defaults.startDate;
@@ -690,17 +587,7 @@
 
             document.getElementById('permitStatus').innerText = data.status || defaults.status;
 
-            // تحديث عنوان تبويب المتصفح
             document.title = `التحقق من تصريح أجير - ${data.permitNumber || 'TQ6262101'}`;
-
-            // إذا وُجد ملف مرفوع، نظهر زر معاينة الملف
-            if (doc && doc.fileUrl) {
-                document.getElementById('attachmentBar').style.display = 'block';
-                document.getElementById('modalDocImg').src = doc.fileUrl;
-                if (doc.personName) {
-                    document.getElementById('modalDocTitle').innerText = `المستند المرفق: ${doc.personName}`;
-                }
-            }
 
             // إخفاء مؤشر التحميل بسلاسة
             const overlay = document.getElementById('loadingOverlay');
@@ -709,20 +596,6 @@
                 overlay.style.display = 'none';
             }, 300);
         }
-
-        function openDocModal() {
-            document.getElementById('docModal').style.display = 'flex';
-        }
-
-        function closeDocModal() {
-            document.getElementById('docModal').style.display = 'none';
-        }
-
-        document.getElementById('docModal').addEventListener('click', (e) => {
-            if (e.target.id === 'docModal') {
-                closeDocModal();
-            }
-        });
     </script>
 </body>
 </html>
