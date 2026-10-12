@@ -355,6 +355,68 @@ pdfRoutes.forEach(route => {
     });
 });
 
+const { spawn } = require('child_process');
+
+app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
+    const docId = req.params.id;
+    const docs = getDocuments();
+    const doc = docs.find(d => d.id === docId);
+    const workerName = (doc && doc.permitData && doc.permitData.workerName) ? doc.permitData.workerName.replace(/\s+/g, '_') : 'Worker';
+    const permitNum = (doc && doc.permitData && doc.permitData.permitNumber) ? doc.permitData.permitNumber : 'TQ';
+
+    const chromePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+    ];
+    const browserExecutable = chromePaths.find(p => fs.existsSync(p));
+
+    if (browserExecutable) {
+        const tempPdfName = `Ajeer_${docId}_${Date.now()}.pdf`;
+        const tempPdfPath = path.join(UPLOADS_DIR, tempPdfName);
+        const url = `http://127.0.0.1:${PORT}/permit-pdf/${docId}`;
+        const args = [
+            '--headless=new',
+            '--disable-gpu',
+            '--no-pdf-header-footer',
+            `--print-to-pdf=${tempPdfPath}`,
+            url
+        ];
+
+        const child = spawn(browserExecutable, args);
+
+        const timeout = setTimeout(() => {
+            try { child.kill(); } catch (e) {}
+            if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
+        }, 15000);
+
+        child.on('close', (code) => {
+            clearTimeout(timeout);
+            if (fs.existsSync(tempPdfPath) && fs.statSync(tempPdfPath).size > 1000) {
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(`تصريح_أجير_${permitNum}_${workerName}.pdf`)}"`);
+                const stream = fs.createReadStream(tempPdfPath);
+                stream.pipe(res);
+                stream.on('end', () => {
+                    setTimeout(() => {
+                        try { fs.unlinkSync(tempPdfPath); } catch (e) {}
+                    }, 3000);
+                });
+            } else {
+                if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
+            }
+        });
+
+        child.on('error', (err) => {
+            clearTimeout(timeout);
+            console.error('Headless PDF error:', err);
+            if (!res.headersSent) res.redirect(`/permit-pdf/${docId}`);
+        });
+        return;
+    }
+
+    res.redirect(`/permit-pdf/${docId}`);
+});
+
 // تشغيل الخادم
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`===============================================`);

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
-    <!-- مكتبة html2pdf لتوليد ملف الـ PDF مباشرة بدقة عالية -->
+    <!-- مكتبة html2pdf لتوليد ملف الـ PDF كبديل احتياطي -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* تضمين خط Frutiger LT Arabic الأصلي المستخرج مباشرة من الوثيقة الرسمية */
@@ -39,14 +39,14 @@
             padding: 24px 12px;
         }
 
-        /* شريط الأدوات العلوي للتحميل والطباعة (يختفي عند الطباعة أو التصدير) */
+        /* شريط الأدوات العلوي للتحميل والطباعة */
         .toolbar {
             width: 100%;
             max-width: 794px;
             background: #ffffff;
             border-radius: 8px;
             padding: 10px 16px;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -102,59 +102,82 @@
         }
         .btn-back:hover { background-color: #e2e8f0; }
 
-        /* ورقة مستند الـ PDF بحجم A4 الحقيقي والمطابقة لأبعاد الملف الأصلي */
+        /* ورقة مستند الـ PDF بحجم A4 الحقيقي والمطابقة لأبعاد الملف الأصلي بدقة 100% */
         .page-container {
             width: 794px;
-            min-height: 1123px;
+            height: 1120px;
+            max-height: 1120px;
             background: #ffffff;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
-            padding: 40px 48px 30px 48px;
+            padding: 34px 44px 24px 44px;
             position: relative;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            overflow: hidden !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
 
         /* 1. صندوق الهيدر العلوي المحدد بإطار رسمي مطابق */
+        /* direction: ltr يضمن بقاء الباركود دائماً في أقصى اليسار والشعارات في أقصى اليمين */
         .header-box {
             border: 0.75pt solid #cecfd5;
-            height: 112px;
+            height: 106px;
             display: flex;
+            flex-direction: row;
             align-items: center;
             justify-content: space-between;
-            padding: 0 14px;
-            margin-bottom: 24px;
+            padding: 0 12px;
+            margin-bottom: 20px;
             background: #ffffff;
+            direction: ltr !important;
+            box-sizing: border-box;
         }
 
-        /* جهة اليمين: الشعارات الرسمية فائقة الدقة */
-        .header-logos {
+        /* اليسار: صندوق الـ QR Code وبيانات التحقق (أول عنصر في LTR = أقصى اليسار) */
+        .header-qr-box {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 14px;
-            justify-content: flex-end;
+            justify-content: center;
+            width: 80px;
+            direction: ltr !important;
         }
 
-        .logo-hrsd {
-            height: 38px;
-            width: auto;
-            object-fit: contain;
+        .header-qr-box img {
+            width: 58px;
+            height: 58px;
             display: block;
+            image-rendering: pixelated;
         }
 
-        .logo-ajeer {
-            height: 40px;
-            width: auto;
-            object-fit: contain;
-            display: block;
+        .qr-subtext-num {
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #000000;
+            margin-top: 1px;
+            letter-spacing: 0.5px;
+            text-align: center;
+            font-family: 'FrutigerLTArabic-45Light', 'Almarai', Arial, monospace;
+        }
+
+        .qr-subtext-scan {
+            font-size: 6.7pt;
+            color: #000000;
+            text-align: center;
+            margin-top: 0px;
+            font-weight: 400;
+            direction: rtl !important;
         }
 
         /* الوسط: عنوان التصريح */
         .header-title-box {
             flex: 1;
             text-align: center;
-            padding: 0 10px;
+            padding: 0 8px;
+            direction: rtl !important;
         }
 
         .header-title {
@@ -162,40 +185,32 @@
             font-weight: 500;
             color: #000000;
             letter-spacing: -0.2px;
+            margin: 0;
+            padding: 0;
+            white-space: nowrap;
         }
 
-        /* جهة اليسار: صندوق الـ QR Code وبيانات التحقق */
-        .header-qr-box {
+        /* اليمين: الشعارات الرسمية فائقة الدقة (آخر عنصر في LTR = أقصى اليمين) */
+        .header-logos {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            justify-content: center;
-            width: 82px;
+            gap: 12px;
+            direction: ltr !important;
         }
 
-        .header-qr-box img {
-            width: 60px;
-            height: 60px;
+        .logo-ajeer {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
             display: block;
-            image-rendering: pixelated;
         }
 
-        .qr-subtext-num {
-            font-size: 8.65pt;
-            font-weight: 700;
-            color: #000000;
-            margin-top: 1px;
-            letter-spacing: 0.6px;
-            text-align: center;
-            font-family: 'FrutigerLTArabic-45Light', 'Almarai', Arial, monospace;
-        }
-
-        .qr-subtext-scan {
-            font-size: 6.73pt;
-            color: #000000;
-            text-align: center;
-            margin-top: -1px;
-            font-weight: 400;
+        .logo-hrsd {
+            height: 36px;
+            width: auto;
+            object-fit: contain;
+            display: block;
         }
 
         /* 2. الفقرة الإشعارية التمهيدية المطابقة تماماً */
@@ -204,11 +219,11 @@
             line-height: 1.5;
             color: #000000;
             text-align: justify;
-            margin-bottom: 22px;
+            margin-bottom: 20px;
             font-weight: 400;
         }
 
-        /* 3. الجدول الموحد المتصل بدون فواصل */
+        /* 3. الجدول الموحد المتصل المطابق 100% */
         .unified-table {
             width: 100%;
             border-collapse: collapse;
@@ -235,7 +250,7 @@
             font-weight: 500;
             color: #000000;
             text-align: center;
-            padding: 5pt 6pt !important;
+            padding: 4.5pt 6pt !important;
             height: 24.5pt;
         }
 
@@ -264,7 +279,7 @@
 
         /* 4. قسم الإقرارات المطابق للملف الأصلي */
         .declarations-section {
-            margin-top: 18px;
+            margin-top: 16px;
         }
 
         .decl-main-title {
@@ -272,14 +287,14 @@
             font-size: 9pt;
             font-weight: 700;
             color: #000000;
-            margin-bottom: 8px;
+            margin-bottom: 7px;
         }
 
         .decl-intro {
             font-size: 9pt;
             font-weight: 700;
             color: #000000;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             text-align: right;
         }
 
@@ -288,7 +303,7 @@
             padding: 0;
             margin: 0;
             font-size: 9pt;
-            line-height: 1.8;
+            line-height: 1.75;
             color: #000000;
         }
 
@@ -311,9 +326,10 @@
         /* 5. تذييل المستند في أسفل الصفحة */
         .doc-footer {
             margin-top: auto;
-            padding-top: 45px;
-            padding-bottom: 10px;
+            padding-top: 25px;
+            padding-bottom: 5px;
             text-align: center;
+            page-break-inside: avoid !important;
         }
 
         .footer-verify-text {
@@ -323,10 +339,9 @@
             direction: rtl;
         }
 
-        .footer-verify-text a {
-            color: #000000;
-            text-decoration: none;
-            direction: ltr;
+        .footer-verify-text .ltr-url {
+            direction: ltr !important;
+            unicode-bidi: isolate;
             display: inline-block;
         }
 
@@ -341,6 +356,7 @@
             body {
                 background: none !important;
                 padding: 0 !important;
+                margin: 0 !important;
             }
 
             .toolbar {
@@ -351,13 +367,17 @@
                 box-shadow: none !important;
                 border: none !important;
                 width: 100% !important;
-                min-height: auto !important;
-                padding: 10mm 15mm 8mm 15mm !important;
+                height: 100% !important;
+                max-height: 297mm !important;
+                padding: 10mm 14mm 8mm 14mm !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
 
             @page {
                 size: A4 portrait;
-                margin: 0;
+                margin: 0 !important;
             }
         }
     </style>
@@ -411,12 +431,13 @@
         </div>
     </div>
 
-    <!-- حاوية صفحة مستند التصريح الرسمي A4 -->
+    <!-- حاوية صفحة مستند التصريح الرسمي A4 (صفحة واحدة فقط دون تكرار أو تقسيم) -->
     <div class="page-container" id="pdfContent">
 
         <!-- 1. ترويسة المستند الرسمية -->
+        <!-- الترتيب الدقيق: أقصى اليسار = QR وبيانات التحقق | الوسط = عنوان التصريح | أقصى اليمين = الشعارات الرسمية -->
         <div class="header-box">
-            <!-- اليسار: الـ QR وبيانات التحقق -->
+            <!-- أقصى اليسار: الـ QR وبيانات التحقق -->
             <div class="header-qr-box">
                 <img id="pdfQrImg" src="" alt="QR Code">
                 <div id="pdfQrPermitNum" class="qr-subtext-num">TQ6262259</div>
@@ -428,10 +449,10 @@
                 <h1 class="header-title">تصريح أجير – تعاقد أجير</h1>
             </div>
 
-            <!-- اليمين: الشعارات الرسمية فائقة الدقة المستخرجة من الوثيقة الأصلية -->
+            <!-- أقصى اليمين: الشعارات الرسمية فائقة الدقة (شعار أجير ثم شعار الموارد البشرية على الطرف الأيمن) -->
             <div class="header-logos">
-                <img src="/assets/extracted_hrsd.png" alt="وزارة الموارد البشرية والتنمية الاجتماعية" class="logo-hrsd">
                 <img src="/assets/extracted_ajeer.png" alt="أجير" class="logo-ajeer">
+                <img src="/assets/extracted_hrsd.png" alt="وزارة الموارد البشرية والتنمية الاجتماعية" class="logo-hrsd">
             </div>
         </div>
 
@@ -523,7 +544,7 @@
 
         <!-- 5. تذييل المستند في أسفل الصفحة -->
         <div class="doc-footer">
-            <p class="footer-verify-text">للتحقق من صحة هذا التصريح وسريان مفعوله بإمكانك زيارة موقع أجير (https://ajeer.com.sa)</p>
+            <p class="footer-verify-text">للتحقق من صحة هذا التصريح وسريان مفعوله بإمكانك زيارة موقع أجير&#x200E; <span dir="ltr" class="ltr-url">(https://ajeer.com.sa)</span></p>
             <p class="footer-accredited-text">* خدمة معتمدة من وزارة الموارد البشرية والتنمية الإجتماعية *</p>
         </div>
 
@@ -604,37 +625,59 @@
             document.title = `تصريح أجير - ${p.permitNumber || 'TQ6262259'} - ${p.workerName || ''}`;
         }
 
-        // تحميل ملف PDF عالي الدقة مباشرة
-        function downloadAsPdf() {
-            const element = document.getElementById('pdfContent');
+        // تحميل ملف PDF فائق الدقة (مباشرة عبر محرك Chromium Vector الأصلي مع بديل متصفح نقي)
+        async function downloadAsPdf() {
             const btn = document.getElementById('downloadBtn');
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<span>جاري توليد ملف الـ PDF...</span>`;
+            btn.innerHTML = `<span>جاري توليد وتحميل ملف الـ PDF...</span>`;
             btn.disabled = true;
 
             const permitNum = document.getElementById('pdfQrPermitNum').innerText.trim() || 'TQ';
             const workerName = document.getElementById('pdf_workerName').innerText.trim() || 'العامل';
+            const filename = `تصريح_أجير_${permitNum}_${workerName.replace(/\s+/g, '_')}.pdf`;
 
-            // انتظر جاهزية الخطوط قبل التصوير لضمان دقة الخط 100%
+            // 1. الأولوية الأولى: تحميل مباشر للملف المتجهي الأصلي من الخادم عبر Chromium
+            try {
+                const response = await fetch(`/api/export-pdf/${docId}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+            } catch (err) {
+                console.warn('Server export fallback to client-side:', err);
+            }
+
+            // 2. بديل العميل في حال تعذر الخادم: بدون تقسيم وبدون تكسير الخطوط
             document.fonts.ready.then(() => {
+                const element = document.getElementById('pdfContent');
                 const opt = {
-                    margin: [8, 12, 8, 12],
-                    filename: `تصريح_أجير_${permitNum}_${workerName.replace(/\s+/g, '_')}.pdf`,
+                    margin: 0,
+                    filename: filename,
                     image: { type: 'jpeg', quality: 1.0 },
                     html2canvas: {
-                        scale: 4,
+                        scale: 3,
                         useCORS: true,
-                        letterRendering: true,
-                        scrollY: 0
+                        scrollY: 0,
+                        letterRendering: false
                     },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    jsPDF: { unit: 'px', format: [794, 1120], orientation: 'portrait' }
                 };
 
                 html2pdf().set(opt).from(element).save().then(() => {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                 }).catch(err => {
-                    console.error(err);
+                    console.error('html2pdf fallback error:', err);
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                     window.print();
