@@ -710,8 +710,8 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
     const docs = getDocuments();
     const doc = docs.find(d => d.id === docId) || docs[0] || { id: docId, permitData: getDefaultPermitData() };
     const p = (doc && doc.permitData) ? { ...getDefaultPermitData(), ...doc.permitData } : getDefaultPermitData();
-    const workerName = (p.workerName || 'Worker').replace(/[\s\/\\:*?"<>|]+/g, '_');
-    const permitNum = p.permitNumber || 'TQ6262259';
+    const rawWorkerName = (p.workerName || doc.personName || 'Worker').trim();
+    const cleanWorkerName = rawWorkerName.replace(/[\/\\:*?"<>|]+/g, ' ').trim();
 
     const chromePaths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -763,8 +763,8 @@ app.get(['/download-pdf/:id', '/api/export-pdf/:id'], (req, res) => {
         child.on('close', (code) => {
             clearTimeout(timeout);
             if (fs.existsSync(tempPdfPath) && fs.statSync(tempPdfPath).size > 1000) {
-                const asciiName = `Ajeer_Permit_${permitNum}.pdf`;
-                const utf8Name = encodeURIComponent(`تصريح_أجير_${permitNum}_${workerName}.pdf`);
+                const asciiName = `${cleanWorkerName.replace(/[^\x20-\x7E]/g, '') || 'permit'}.pdf`;
+                const utf8Name = encodeURIComponent(`${cleanWorkerName}.pdf`);
                 res.setHeader('Content-Type', 'application/pdf');
                 res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${utf8Name}`);
                 res.setHeader('Content-Length', fs.statSync(tempPdfPath).size);

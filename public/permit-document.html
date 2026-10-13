@@ -600,11 +600,17 @@
         const docId = (currentDocId && !currentDocId.includes('__DOC_ID')) ? currentDocId : (urlId && urlId !== 'permit-document.html' ? urlId : '57f97ae1');
 
         function getPermitFilename() {
-            const numEl = document.getElementById('pdfQrPermitNum');
             const nameEl = document.getElementById('pdf_workerName');
-            const num = numEl ? numEl.innerText.trim() : 'TQ';
-            const name = nameEl ? nameEl.innerText.trim().replace(/\s+/g, '_') : 'Worker';
-            return `تصريح_أجير_${num}_${name}.pdf`;
+            const name = nameEl ? nameEl.innerText.trim().replace(/[\/\\:*?"<>|]+/g, ' ').trim() : 'Worker';
+            return `${name}.pdf`;
+        }
+
+        // تحديث عنوان الصفحة ليكون اسم الشخص فقط لضمان حفظ الـ PDF باسمه فقط عند الطباعة
+        function updateDocumentTitle() {
+            const nameEl = document.getElementById('pdf_workerName');
+            if (nameEl && nameEl.innerText.trim()) {
+                document.title = nameEl.innerText.trim();
+            }
         }
 
         // حماية المسافات في خلايا الجدول فقط لضمان عدم اندماج الكلمات في تصدير الـ PDF
@@ -620,11 +626,15 @@
             });
         }
 
-        // تطبيق حفظ مسافات الجدول عند تحميل الصفحة
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', preserveTableSpaces);
-        } else {
+        // تطبيق حفظ مسافات الجدول وتحديث اسم الملف عند تحميل الصفحة
+        function initPermitPage() {
             preserveTableSpaces();
+            updateDocumentTitle();
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPermitPage);
+        } else {
+            initPermitPage();
         }
 
         // توليد ملف PDF عالي الدقة محلياً في المتصفح بحجم صفحة A4 واحدة فقط 100%
