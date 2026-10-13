@@ -50,10 +50,11 @@ if (process.env.DATABASE_URL) {
 function getLocalSettings() {
     if (fs.existsSync(SETTINGS_FILE)) {
         try {
-            return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+            const s = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+            if (s && s.customBaseUrl && s.customBaseUrl.trim()) return s;
         } catch (e) {}
     }
-    return { customBaseUrl: '' };
+    return { customBaseUrl: 'https://ageer.onrender.com' };
 }
 
 // قراءة المستندات المحلية
@@ -266,11 +267,14 @@ async function initDatabase() {
         `);
         console.log('✅ تم تجهيز الجداول في قاعدة البيانات السحابية بنجاح.');
 
-        // تحميل الإعدادات من السحابة إن وجدت
+        // تحميل الإعدادات من السحابة إن وجدت، أو اعتماد الدومين الرئيسي
         try {
             const setRes = await pool.query(`SELECT value FROM settings WHERE key = 'app_settings'`);
-            if (setRes.rows.length > 0 && setRes.rows[0].value) {
+            if (setRes.rows.length > 0 && setRes.rows[0].value && setRes.rows[0].value.customBaseUrl) {
                 cachedSettings = setRes.rows[0].value;
+            } else {
+                cachedSettings = { customBaseUrl: 'https://ageer.onrender.com' };
+                await saveSettings(cachedSettings);
             }
         } catch (e) {}
 
